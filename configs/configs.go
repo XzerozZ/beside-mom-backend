@@ -12,6 +12,7 @@ type Configs struct {
 	JWT        JWT
 	App        Fiber
 	Supabase   Supabase
+	Mail       Mail
 }
 
 type Fiber struct {
@@ -30,6 +31,13 @@ type PostgreSQL struct {
 
 type JWT struct {
 	Secret string
+}
+
+type Mail struct {
+	Host   string
+	Port   string
+	Sender string
+	Key    string
 }
 
 type Supabase struct {
@@ -64,6 +72,12 @@ func LoadConfigs() *Configs {
 			URL:    os.Getenv("SUPABASE_URL"),
 			Key:    os.Getenv("SUPABASE_KEY"),
 			Bucket: os.Getenv("BUCKET_NAME"),
+		},
+		Mail: Mail{
+			Host:   os.Getenv("EMAIL_HOST"),
+			Port:   os.Getenv("EMAIL_PORT"),
+			Sender: os.Getenv("EMAIL_USER"),
+			Key:    os.Getenv("EMAIL_PASS"),
 		},
 	}
 }

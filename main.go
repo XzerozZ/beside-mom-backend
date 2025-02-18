@@ -2,6 +2,7 @@ package main
 
 import (
 	"Beside-Mom-BE/configs"
+	"Beside-Mom-BE/modules/server"
 	"Beside-Mom-BE/pkg/database"
 	"log"
 	"math"
@@ -16,6 +17,7 @@ func main() {
 		BodyLimit: math.MaxInt64,
 	})
 
+	server.SetupRoutes(app, config.JWT, config.Supabase, config.Mail)
 	serverAddress := config.App.Host + ":" + config.App.Port
 	log.Printf("Server is running on %s", serverAddress)
 	log.Fatal(app.Listen(serverAddress))

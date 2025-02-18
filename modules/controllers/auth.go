@@ -1,0 +1,123 @@
+package controllers
+
+import (
+	"Beside-Mom-BE/modules/entities"
+	"Beside-Mom-BE/modules/usecases"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+type AuthController struct {
+	usecase usecases.AuthUseCase
+}
+
+func NewAuthController(usecase usecases.AuthUseCase) *AuthController {
+	return &AuthController{usecase: usecase}
+}
+
+func (c *AuthController) RegisterHandler(ctx *fiber.Ctx) error {
+	var req struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		Firstname string `json:"firstname"`
+		Lastname  string `json:"lastname"`
+	}
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      fiber.ErrBadRequest.Message,
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	if req.Email == "" || req.Password == "" || req.Firstname == "" || req.Lastname == "" {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Email, Password, Firstname and Lastname is required",
+			"result":      nil,
+		})
+	}
+
+	user := &entities.User{
+		Email:     req.Email,
+		Password:  req.Password,
+		Firstname: req.Firstname,
+		Lastname:  req.Lastname,
+	}
+
+	data, err := c.usecase.RegisterAdmin(user)
+	if err != nil {
+		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+			"status":      fiber.ErrInternalServerError.Message,
+			"status_code": fiber.ErrInternalServerError.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "user created successfully",
+		"result":      data,
+	})
+}
+
+func (c *AuthController) LoginHandler(ctx *fiber.Ctx) error {
+	var req struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+			"status":      fiber.ErrInternalServerError.Message,
+			"status_code": fiber.ErrInternalServerError.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	if req.Email == "" {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Email is missing",
+			"result":      nil,
+		})
+	}
+
+	if req.Password == "" {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Password is missing",
+			"result":      nil,
+		})
+	}
+
+	token, user, err := c.usecase.Login(req.Email, req.Password)
+	if err != nil {
+		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+			"status":      fiber.ErrInternalServerError.Message,
+			"status_code": fiber.ErrInternalServerError.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "Login successful",
+		"result": fiber.Map{
+			"token": token,
+			"u_id":  user.ID,
+			"name":  user.Firstname + user.Lastname,
+			"role":  user.Role.RoleName,
+		},
+	})
+}

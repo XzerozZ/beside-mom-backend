@@ -31,8 +31,10 @@ func InitDB(config configs.PostgreSQL) {
 
 	_ = db.AutoMigrate(
 		&entities.User{},
+		&entities.Question{},
 	)
 
+	insertRoles()
 	log.Println("Database connection established successfully!")
 }
 
@@ -42,4 +44,35 @@ func GetDB() *gorm.DB {
 	}
 
 	return db
+}
+
+func insertRoles() {
+	var adminRole entities.Role
+	var userRole entities.Role
+
+	if err := db.First(&adminRole, "role_name = ?", "Admin").Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			adminRole = entities.Role{RoleName: "Admin"}
+			if err := db.Create(&adminRole).Error; err != nil {
+				log.Fatalf("Failed to insert Admin role: %v", err)
+			}
+
+			log.Println("Admin role created successfully!")
+		} else {
+			log.Fatalf("Error checking Admin role: %v", err)
+		}
+	}
+
+	if err := db.First(&userRole, "role_name = ?", "User").Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			userRole = entities.Role{RoleName: "User"}
+			if err := db.Create(&userRole).Error; err != nil {
+				log.Fatalf("Failed to insert User role: %v", err)
+			}
+
+			log.Println("User role created successfully!")
+		} else {
+			log.Fatalf("Error checking User role: %v", err)
+		}
+	}
 }
