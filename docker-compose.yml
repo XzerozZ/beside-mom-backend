@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: SE
+    container_name: Beside-mom
     ports:
       - "${DB_PORT}:${DB_PORT}"
     environment:
@@ -13,7 +13,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin
+    container_name: pgadmin-for-besidemom
     ports:
       - "5050:80"
     environment:
