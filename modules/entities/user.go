@@ -11,6 +11,7 @@ type User struct {
 	ImageLink string    `json:"image_link"`
 	RoleID    int       `json:"-" gorm:"not null"`
 	Role      Role      `json:"role" gorm:"foreignKey:RoleID"`
+	Kid       []Kid     `json:"kids,omitempty" gorm:"foreignKey:UserID"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

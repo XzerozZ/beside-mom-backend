@@ -51,3 +51,17 @@ func JWTMiddleware(config configs.JWT) fiber.Handler {
 		return ctx.Next()
 	}
 }
+
+func AdminMiddleware(ctx *fiber.Ctx) error {
+	userRole, ok := ctx.Locals("role").(string)
+	if !ok || userRole != "Admin" {
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusForbidden,
+			"message":     "Forbidden: Admin access required",
+			"result":      nil,
+		})
+	}
+
+	return ctx.Next()
+}

@@ -51,7 +51,7 @@ func (c *QuestionController) CreateQuestionHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
 			"status":      fiber.ErrInternalServerError.Message,
 			"status_code": fiber.ErrInternalServerError.Code,
-			"message":     "Something went wrong",
+			"message":     err.Error(),
 			"result":      nil,
 		})
 	}
@@ -95,6 +95,16 @@ func (c *QuestionController) GetQuestionByIDHandler(ctx *fiber.Ctx) error {
 }
 
 func (c *QuestionController) GetAllQuestionHandler(ctx *fiber.Ctx) error {
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
 	data, err := c.usecase.GetAllQuestion()
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
@@ -140,7 +150,7 @@ func (c *QuestionController) UpdateQuestionByIDHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,
 			"status_code": fiber.ErrNotFound.Code,
-			"message":     "Something went worng",
+			"message":     err.Error(),
 			"result":      nil,
 		})
 	}

@@ -5,7 +5,7 @@ import (
 	"Beside-Mom-BE/modules/server"
 	"Beside-Mom-BE/pkg/database"
 	"log"
-	"math"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,7 +14,11 @@ func main() {
 	config := configs.LoadConfigs()
 	database.InitDB(config.PostgreSQL)
 	app := fiber.New(fiber.Config{
-		BodyLimit: math.MaxInt64,
+		BodyLimit:         2 * 1024 * 1024 * 1024,
+		ReadTimeout:       10 * time.Minute,
+		WriteTimeout:      30 * time.Minute,
+		IdleTimeout:       10 * time.Minute,
+		StreamRequestBody: true,
 	})
 
 	server.SetupRoutes(app, config.JWT, config.Supabase, config.Mail)

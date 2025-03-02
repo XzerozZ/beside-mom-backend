@@ -7,12 +7,13 @@ import (
 	"Beside-Mom-BE/pkg/utils"
 	"errors"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserUseCase interface {
 	CreateUser(user *entities.User) (*entities.User, error)
+	GetMomByID(id string) (*entities.User, error)
+	GetAllMom() ([]entities.User, error)
 }
 
 type UserUseCaseImpl struct {
@@ -45,7 +46,6 @@ func (u *UserUseCaseImpl) CreateUser(user *entities.User) (*entities.User, error
 		return nil, errors.New("role not found")
 	}
 
-	user.ID = uuid.New().String()
 	user.RoleID = role.ID
 	password, err := utils.GeneratePassword(8)
 	if err != nil {
@@ -63,9 +63,17 @@ func (u *UserUseCaseImpl) CreateUser(user *entities.User) (*entities.User, error
 		return nil, err
 	}
 
-	if err := utils.SendMail("./assets/PasswordMail.html", *createdUser, password, u.mail); err != nil {
+	if err := utils.SendPasswordMail("./assets/Passwordmail.html", *createdUser, password, u.mail); err != nil {
 		return nil, err
 	}
 
 	return createdUser, nil
+}
+
+func (u *UserUseCaseImpl) GetMomByID(id string) (*entities.User, error) {
+	return u.repo.GetMomByID(id)
+}
+
+func (u *UserUseCaseImpl) GetAllMom() ([]entities.User, error) {
+	return u.repo.GetAllMom()
 }

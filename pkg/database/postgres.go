@@ -32,6 +32,10 @@ func InitDB(config configs.PostgreSQL) {
 	_ = db.AutoMigrate(
 		&entities.User{},
 		&entities.Question{},
+		&entities.Video{},
+		&entities.Likes{},
+		&entities.Kid{},
+		&entities.Appointment{},
 	)
 
 	insertRoles()

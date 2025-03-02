@@ -32,7 +32,7 @@ func (r *GormVideoRepository) CreateVideo(video *entities.Video) (*entities.Vide
 
 func (r *GormVideoRepository) GetVideoByID(id string) (*entities.Video, error) {
 	var video entities.Video
-	if err := r.db.First(&video, id).Error; err != nil {
+	if err := r.db.Where("id = ?", id).First(&video).Error; err != nil {
 		return nil, err
 	}
 
