@@ -44,6 +44,7 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
+	fileHeaders := form.File["images"]
 	user := &entities.User{
 		ID:        uuid.New().String(),
 		Firstname: form.Value["firstname"][0],
@@ -51,7 +52,12 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		Email:     form.Value["email"][0],
 	}
 
-	data, err := c.usecase.CreateUser(user)
+	var image *multipart.FileHeader
+	if len(fileHeaders) > 0 {
+		image = fileHeaders[0]
+	}
+
+	data, err := c.usecase.CreateUser(user, image, ctx)
 	if err != nil {
 		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
 			"status":      fiber.ErrInternalServerError.Message,
@@ -61,51 +67,58 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	var kids []*entities.Kid
-	fileHeaders := form.File["images"]
-	for i := 1; i < len(form.Value["firstname"]); i++ {
-		birthWeight, _ := strconv.ParseFloat(form.Value["birthweight"][i-1], 64)
-		birthLength, _ := strconv.ParseFloat(form.Value["birthlength"][i-1], 64)
-		birthDate, err := time.Parse("2006-01-02", form.Value["birthdate"][i-1])
-		if err != nil {
-			return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
-				"status":      fiber.ErrBadRequest.Message,
-				"status_code": fiber.ErrBadRequest.Code,
-				"message":     "Invalid birthdate format. Use YYYY-MM-DD",
-				"result":      nil,
-			})
-		}
+	if len(form.Value["firstname"]) <= 1 {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "At least one kid is required",
+			"result":      nil,
+		})
+	}
 
-		kid := &entities.Kid{
-			ID:          uuid.New().String(),
-			Firstname:   form.Value["firstname"][i],
-			Lastname:    form.Value["lastname"][i],
-			Username:    form.Value["username"][i-1],
-			Sex:         form.Value["sex"][i-1],
-			BirthDate:   birthDate,
-			BloodType:   form.Value["bloodtype"][i-1],
-			BirthWeight: birthWeight,
-			BirthLength: birthLength,
-			Note:        form.Value["note"][i-1],
-			UserID:      user.ID,
-		}
+	if len(form.Value["firstname"]) > 2 {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Only one kid is allowed",
+			"result":      nil,
+		})
+	}
 
-		var image *multipart.FileHeader
-		if len(fileHeaders) > i-1 {
-			image = fileHeaders[i-1]
-		}
+	birthWeight, _ := strconv.ParseFloat(form.Value["birthweight"][0], 64)
+	birthLength, _ := strconv.ParseFloat(form.Value["birthlength"][0], 64)
+	birthDate, err := time.Parse("2006-01-02", form.Value["birthdate"][0])
+	if err != nil {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      fiber.ErrBadRequest.Message,
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Invalid birthdate format. Use YYYY-MM-DD",
+			"result":      nil,
+		})
+	}
 
-		createdKid, err := c.kidusecase.CreateKid(kid, image, ctx)
-		if err != nil {
-			return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
-				"status":      fiber.ErrInternalServerError.Message,
-				"status_code": fiber.ErrInternalServerError.Code,
-				"message":     "Failed to create kid: " + err.Error(),
-				"result":      nil,
-			})
-		}
+	kid := &entities.Kid{
+		ID:          uuid.New().String(),
+		Firstname:   form.Value["firstname"][1],
+		Lastname:    form.Value["lastname"][1],
+		Username:    form.Value["username"][0],
+		Sex:         form.Value["sex"][0],
+		BirthDate:   birthDate,
+		BloodType:   form.Value["bloodtype"][0],
+		BirthWeight: birthWeight,
+		BirthLength: birthLength,
+		Note:        form.Value["note"][0],
+		UserID:      user.ID,
+	}
 
-		kids = append(kids, createdKid)
+	kid, err = c.kidusecase.CreateKid(kid, fileHeaders[1], ctx)
+	if err != nil {
+		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+			"status":      fiber.ErrInternalServerError.Message,
+			"status_code": fiber.ErrInternalServerError.Code,
+			"message":     "Failed to create kid: " + err.Error(),
+			"result":      nil,
+		})
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -114,7 +127,7 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		"message":     "User created successfully",
 		"result": fiber.Map{
 			"Mom":  data,
-			"Kids": kids,
+			"Kids": kid,
 		},
 	})
 }
@@ -175,5 +188,36 @@ func (c *UserController) GetAllMomHandler(ctx *fiber.Ctx) error {
 		"status_code": fiber.StatusOK,
 		"message":     "Mom retrieved successfully",
 		"result":      data,
+	})
+}
+
+func (c *UserController) UpdateUserByIDHandler(ctx *fiber.Ctx) error {
+	momID := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	images, _ := ctx.FormFile("images")
+	updatedUser, err := c.usecase.UpdateUserByID(momID, images, ctx)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "User retrieved successfully",
+		"result":      updatedUser,
 	})
 }

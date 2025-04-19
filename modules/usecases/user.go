@@ -6,14 +6,19 @@ import (
 	"Beside-Mom-BE/modules/repositories"
 	"Beside-Mom-BE/pkg/utils"
 	"errors"
+	"mime/multipart"
+	"os"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserUseCase interface {
-	CreateUser(user *entities.User) (*entities.User, error)
+	CreateUser(user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
+	UpdateUserByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
 }
 
 type UserUseCaseImpl struct {
@@ -30,7 +35,7 @@ func NewUserUseCase(repo repositories.UserRepository, supa configs.Supabase, mai
 	}
 }
 
-func (u *UserUseCaseImpl) CreateUser(user *entities.User) (*entities.User, error) {
+func (u *UserUseCaseImpl) CreateUser(user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error) {
 	normalizedEmail, err := utils.NormalizeEmail(user.Email)
 	if err != nil {
 		return nil, errors.New("invalid email format")
@@ -58,6 +63,25 @@ func (u *UserUseCaseImpl) CreateUser(user *entities.User) (*entities.User, error
 	}
 
 	user.Password = string(hashedPassword)
+	if image != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(image, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		user.ImageLink = imageUrl
+	}
+
 	createdUser, err := u.repo.CreateUser(user)
 	if err != nil {
 		return nil, err
@@ -76,4 +100,37 @@ func (u *UserUseCaseImpl) GetMomByID(id string) (*entities.User, error) {
 
 func (u *UserUseCaseImpl) GetAllMom() ([]entities.User, error) {
 	return u.repo.GetAllMom()
+}
+
+func (u *UserUseCaseImpl) UpdateUserByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error) {
+	existingUser, err := u.repo.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if image != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(image, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		existingUser.ImageLink = imageUrl
+	}
+
+	updatedUser, err := u.repo.UpdateUserByID(existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
 }

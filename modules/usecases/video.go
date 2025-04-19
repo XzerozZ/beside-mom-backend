@@ -7,18 +7,20 @@ import (
 	"Beside-Mom-BE/pkg/utils"
 	"io"
 	"mime/multipart"
+	"os"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type VideoUseCase interface {
-	CreateVideo(video *entities.Video, videoFile *multipart.FileHeader, file io.Reader) (*entities.Video, error)
-	CreateVideowithLink(video *entities.Video) (*entities.Video, error)
+	CreateVideo(video *entities.Video, videoFile *multipart.FileHeader, file io.Reader, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error)
+	CreateVideowithLink(video *entities.Video, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error)
 	GetAllVideo() ([]map[string]interface{}, error)
 	GetVideoByID(id string) (map[string]interface{}, error)
 	IncreaseView(id string) error
-	UpdateVideo(id string, userID string, video *entities.Video, videoFile *multipart.FileHeader, file io.Reader) (*entities.Video, error)
-	UpdateVideowithLink(id string, userID string, video *entities.Video) (*entities.Video, error)
+	UpdateVideo(id string, video *entities.Video, videoFile *multipart.FileHeader, file io.Reader, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error)
+	UpdateVideowithLink(id string, video *entities.Video, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error)
 	DeleteVideoByID(id string) error
 }
 
@@ -36,7 +38,7 @@ func NewVideoUseCase(repo repositories.VideoRepository, likerepo repositories.Li
 	}
 }
 
-func (u *VideoUseCaseImpl) CreateVideo(video *entities.Video, videoFile *multipart.FileHeader, file io.Reader) (*entities.Video, error) {
+func (u *VideoUseCaseImpl) CreateVideo(video *entities.Video, videoFile *multipart.FileHeader, file io.Reader, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error) {
 	if videoFile != nil {
 		fileName := uuid.New().String() + "_video.mp4"
 		videoUrl, err := utils.UploadVideo(fileName, file, u.supa)
@@ -47,6 +49,25 @@ func (u *VideoUseCaseImpl) CreateVideo(video *entities.Video, videoFile *multipa
 		video.Link = videoUrl
 	}
 
+	if banner != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(banner, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		video.Banner = imageUrl
+	}
+
 	createdVideo, err := u.repo.CreateVideo(video)
 	if err != nil {
 		return nil, err
@@ -55,8 +76,32 @@ func (u *VideoUseCaseImpl) CreateVideo(video *entities.Video, videoFile *multipa
 	return createdVideo, nil
 }
 
-func (u *VideoUseCaseImpl) CreateVideowithLink(video *entities.Video) (*entities.Video, error) {
-	return u.repo.CreateVideo(video)
+func (u *VideoUseCaseImpl) CreateVideowithLink(video *entities.Video, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error) {
+	if banner != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(banner, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		video.Banner = imageUrl
+	}
+
+	createdVideo, err := u.repo.CreateVideo(video)
+	if err != nil {
+		return nil, err
+	}
+
+	return createdVideo, nil
 }
 
 func (u *VideoUseCaseImpl) GetAllVideo() ([]map[string]interface{}, error) {
@@ -125,7 +170,7 @@ func (u *VideoUseCaseImpl) IncreaseView(id string) error {
 	return nil
 }
 
-func (u *VideoUseCaseImpl) UpdateVideo(id string, userID string, video *entities.Video, videoFile *multipart.FileHeader, file io.Reader) (*entities.Video, error) {
+func (u *VideoUseCaseImpl) UpdateVideo(id string, video *entities.Video, videoFile *multipart.FileHeader, file io.Reader, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error) {
 	existingVideo, err := u.repo.GetVideoByID(id)
 	if err != nil {
 		return nil, err
@@ -143,6 +188,25 @@ func (u *VideoUseCaseImpl) UpdateVideo(id string, userID string, video *entities
 		existingVideo.Link = videoUrl
 	}
 
+	if banner != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(banner, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		existingVideo.Banner = imageUrl
+	}
+
 	updatedVideo, err := u.repo.UpdateVideoByID(existingVideo)
 	if err != nil {
 		return nil, err
@@ -151,10 +215,29 @@ func (u *VideoUseCaseImpl) UpdateVideo(id string, userID string, video *entities
 	return updatedVideo, nil
 }
 
-func (u *VideoUseCaseImpl) UpdateVideowithLink(id string, userID string, video *entities.Video) (*entities.Video, error) {
+func (u *VideoUseCaseImpl) UpdateVideowithLink(id string, video *entities.Video, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Video, error) {
 	existingVideo, err := u.repo.GetVideoByID(id)
 	if err != nil {
 		return nil, err
+	}
+
+	if banner != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(banner, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		existingVideo.Banner = imageUrl
 	}
 
 	existingVideo.Title = video.Title

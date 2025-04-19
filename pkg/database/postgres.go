@@ -36,6 +36,8 @@ func InitDB(config configs.PostgreSQL) {
 		&entities.Likes{},
 		&entities.Kid{},
 		&entities.Appointment{},
+		&entities.Care{},
+		&entities.OTP{},
 	)
 
 	insertRoles()

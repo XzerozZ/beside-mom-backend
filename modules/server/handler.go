@@ -33,23 +33,27 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		})
 	})
 
-	setupAuthRoutes(app, db, jwt)
+	setupAuthRoutes(app, db, jwt, mail)
 	setupQuestRoutes(app, db, jwt)
 	setupLikeRoutes(app, db, jwt)
 	setupAppointRoutes(app, db, jwt)
 	setupVideoRoutes(app, db, jwt, supa)
+	setupCareRoutes(app, db, jwt, supa)
 	setupKidRoutes(app, db, jwt, supa)
 	setupUserRoutes(app, db, jwt, supa, mail)
 }
 
-func setupAuthRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
+func setupAuthRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, mail configs.Mail) {
 	repository := repositories.NewGormUserRepository(db)
-	usecase := usecases.NewAuthUseCase(repository, jwt)
+	usecase := usecases.NewAuthUseCase(repository, jwt, mail)
 	controller := controllers.NewAuthController(usecase)
 
 	authGroup := app.Group("/auth")
 	authGroup.Post("/register", controller.RegisterHandler)
 	authGroup.Post("/login", controller.LoginHandler)
+	authGroup.Post("/forgotpassword", controller.ForgotPasswordHandler)
+	authGroup.Post("/forgotpassword/otp", controller.VerifyOTPHandler)
+	authGroup.Put("/forgotpassword/changepassword", controller.ChangedPasswordHandler)
 }
 
 func setupQuestRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
@@ -71,12 +75,12 @@ func setupVideoRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs
 	usecase := usecases.NewVideoUseCase(repository, likerepository, supa)
 	controller := controllers.NewVideoController(usecase)
 
-	videoGroup := app.Group("/video")
-	videoGroup.Post("/", middlewares.JWTMiddleware(jwt), controller.CreateVideoHandler)
-	videoGroup.Get("/", middlewares.JWTMiddleware(jwt), controller.GetAllVideoHandler)
-	videoGroup.Get("/:id", middlewares.JWTMiddleware(jwt), controller.GetVideoByIDHandler)
-	videoGroup.Put("/:id", middlewares.JWTMiddleware(jwt), controller.UpdateVideoHandler)
-	videoGroup.Delete("/:id", middlewares.JWTMiddleware(jwt), controller.DeleteVideoByIDHandler)
+	videoGroup := app.Group("/video", middlewares.JWTMiddleware(jwt))
+	videoGroup.Post("/", middlewares.AdminMiddleware, controller.CreateVideoHandler)
+	videoGroup.Get("/", controller.GetAllVideoHandler)
+	videoGroup.Get("/:id", controller.GetVideoByIDHandler)
+	videoGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateVideoHandler)
+	videoGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteVideoByIDHandler)
 }
 
 func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase, mail configs.Mail) {
@@ -87,9 +91,10 @@ func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	controller := controllers.NewUserController(usecase, kidusecase)
 
 	userGroup := app.Group("/user", middlewares.JWTMiddleware(jwt))
-	userGroup.Post("/", controller.CreateUserandKidsHandler)
+	userGroup.Post("/", middlewares.AdminMiddleware, controller.CreateUserandKidsHandler)
 	userGroup.Get("/", middlewares.AdminMiddleware, controller.GetAllMomHandler)
 	userGroup.Get("/info/:id", middlewares.AdminMiddleware, controller.GetMomByIDHandler)
+	userGroup.Put("/:id", controller.UpdateUserByIDHandler)
 }
 
 func setupLikeRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
@@ -109,9 +114,10 @@ func setupKidRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.S
 	usecase := usecases.NewKidUseCase(repository, supa)
 	controller := controllers.NewKidController(usecase)
 
-	kidGroup := app.Group("/kid")
-	kidGroup.Get("/", middlewares.JWTMiddleware(jwt), controller.GetAllKidsByUserID)
-	kidGroup.Get("/:id", middlewares.JWTMiddleware(jwt), controller.GetKidByIDHandler)
+	kidGroup := app.Group("/kid", middlewares.JWTMiddleware(jwt))
+	kidGroup.Post("/:id", middlewares.AdminMiddleware, controller.CreateKidHandler)
+	kidGroup.Get("/:id", controller.GetKidByIDHandler)
+	kidGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateKidByIDHandler)
 }
 
 func setupAppointRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
@@ -125,4 +131,17 @@ func setupAppointRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	appointGroup.Get("/:id", controller.GetAppByIDHandler)
 	appointGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateAppByIDHandler)
 	appointGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteAppByIDHandler)
+}
+
+func setupCareRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase) {
+	repository := repositories.NewGormCareRepository(db)
+	usecase := usecases.NewCareUseCase(repository, supa)
+	controller := controllers.NewCareController(usecase)
+
+	careGroup := app.Group("/care", middlewares.JWTMiddleware(jwt))
+	careGroup.Post("/", middlewares.AdminMiddleware, controller.CreateCareHandler)
+	careGroup.Get("/", controller.GetAllCareHandler)
+	careGroup.Get("/:id", controller.GetCareByID)
+	careGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateCareHandler)
+	careGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteCareCareHandler)
 }

@@ -16,6 +16,7 @@ type KidUseCase interface {
 	CreateKid(kid *entities.Kid, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 	GetKidByID(id string) (map[string]interface{}, error)
 	GetKidByUserID(userID string) ([]map[string]interface{}, error)
+	UpdateKidByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 }
 
 type KidUseCaseImpl struct {
@@ -139,4 +140,37 @@ func (u *KidUseCaseImpl) GetKidByUserID(userID string) ([]map[string]interface{}
 	}
 
 	return kidsList, nil
+}
+
+func (u *KidUseCaseImpl) UpdateKidByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error) {
+	existingKid, err := u.repo.GetKidByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if image != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(image, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		existingKid.ImageLink = imageUrl
+	}
+
+	updatedKid, err := u.repo.UpdateKidByID(existingKid)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedKid, nil
 }

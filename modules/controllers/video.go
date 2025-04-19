@@ -3,6 +3,7 @@ package controllers
 import (
 	"Beside-Mom-BE/modules/entities"
 	"Beside-Mom-BE/modules/usecases"
+	"mime/multipart"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -54,6 +55,19 @@ func (c *VideoController) CreateVideoHandler(ctx *fiber.Ctx) error {
 
 	videoLink := form.Value["video_link"]
 	videoFile, _ := ctx.FormFile("video_link")
+	fileHeaders := form.File["banners"]
+	var banner *multipart.FileHeader
+	if len(fileHeaders) == 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Please add banner of the video",
+			"result":      nil,
+		})
+	} else {
+		banner = fileHeaders[0]
+	}
+
 	if (len(videoLink) > 0 && videoLink[0] != "") && videoFile != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
@@ -81,7 +95,7 @@ func (c *VideoController) CreateVideoHandler(ctx *fiber.Ctx) error {
 
 	if len(videoLink) > 0 && videoLink[0] != "" {
 		video.Link = videoLink[0]
-		data, err := c.usecase.CreateVideowithLink(&video)
+		data, err := c.usecase.CreateVideowithLink(&video, banner, ctx)
 		if err != nil {
 			return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
 				"status":      fiber.ErrInternalServerError.Message,
@@ -120,7 +134,7 @@ func (c *VideoController) CreateVideoHandler(ctx *fiber.Ctx) error {
 		}
 
 		defer file.Close()
-		data, err := c.usecase.CreateVideo(&video, videoFile, file)
+		data, err := c.usecase.CreateVideo(&video, videoFile, file, banner, ctx)
 		if err != nil {
 			return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
 				"status":      fiber.ErrInternalServerError.Message,
@@ -248,51 +262,20 @@ func (c *VideoController) UpdateVideoHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	videoUpdate := &entities.Video{}
-	if title := form.Value["title"]; len(title) > 0 {
-		videoUpdate.Title = title[0]
-	}
-
-	if desc := form.Value["desc"]; len(desc) > 0 {
-		videoUpdate.Description = desc[0]
+	videoUpdate := &entities.Video{
+		Title:       form.Value["title"][0],
+		Description: form.Value["desc"][0],
 	}
 
 	videoLink := form.Value["video_link"]
 	videoFile, _ := ctx.FormFile("video_link")
+	banner, _ := ctx.FormFile("banners")
 	if (len(videoLink) > 0 && videoLink[0] != "") && videoFile != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.StatusBadRequest,
 			"message":     "Please provide either a video file or a video link, not both",
 			"result":      nil,
-		})
-	}
-
-	if len(videoLink) > 0 && videoLink[0] != "" {
-		videoUpdate.Link = videoLink[0]
-		data, err := c.usecase.UpdateVideowithLink(id, userID, videoUpdate)
-		if err != nil {
-			if err.Error() == "unauthorized: user does not own this video" {
-				return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
-					"status":      "Error",
-					"status_code": fiber.StatusForbidden,
-					"message":     err.Error(),
-					"result":      nil,
-				})
-			}
-			return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
-				"status":      fiber.ErrInternalServerError.Message,
-				"status_code": fiber.ErrInternalServerError.Code,
-				"message":     err.Error(),
-				"result":      nil,
-			})
-		}
-
-		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-			"status":      "Success",
-			"status_code": fiber.StatusOK,
-			"message":     "Video updated successfully with new link",
-			"result":      data,
 		})
 	}
 
@@ -317,7 +300,7 @@ func (c *VideoController) UpdateVideoHandler(ctx *fiber.Ctx) error {
 		}
 
 		defer file.Close()
-		data, err := c.usecase.UpdateVideo(id, userID, videoUpdate, videoFile, file)
+		data, err := c.usecase.UpdateVideo(id, videoUpdate, videoFile, file, banner, ctx)
 		if err != nil {
 			if err.Error() == "unauthorized: user does not own this video" {
 				return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -341,32 +324,44 @@ func (c *VideoController) UpdateVideoHandler(ctx *fiber.Ctx) error {
 			"message":     "Video updated successfully with new file",
 			"result":      data,
 		})
-	}
+	} else {
+		if len(videoLink) > 0 {
+			videoUpdate.Link = videoLink[0]
+			data, err := c.usecase.UpdateVideowithLink(id, videoUpdate, banner, ctx)
+			if err != nil {
+				return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+					"status":      fiber.ErrInternalServerError.Message,
+					"status_code": fiber.ErrInternalServerError.Code,
+					"message":     err.Error(),
+					"result":      nil,
+				})
+			}
 
-	data, err := c.usecase.UpdateVideowithLink(id, userID, videoUpdate)
-	if err != nil {
-		if err.Error() == "unauthorized: user does not own this video" {
-			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"status":      "Error",
-				"status_code": fiber.StatusForbidden,
-				"message":     err.Error(),
-				"result":      nil,
+			return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+				"status":      "Success",
+				"status_code": fiber.StatusOK,
+				"message":     "Video updated successfully with new link",
+				"result":      data,
+			})
+		} else {
+			data, err := c.usecase.UpdateVideowithLink(id, videoUpdate, banner, ctx)
+			if err != nil {
+				return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+					"status":      fiber.ErrInternalServerError.Message,
+					"status_code": fiber.ErrInternalServerError.Code,
+					"message":     err.Error(),
+					"result":      nil,
+				})
+			}
+
+			return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+				"status":      "Success",
+				"status_code": fiber.StatusOK,
+				"message":     "Video updated successfully with new link",
+				"result":      data,
 			})
 		}
-		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
-			"status":      fiber.ErrInternalServerError.Message,
-			"status_code": fiber.ErrInternalServerError.Code,
-			"message":     err.Error(),
-			"result":      nil,
-		})
 	}
-
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":      "Success",
-		"status_code": fiber.StatusOK,
-		"message":     "Video updated successfully",
-		"result":      data,
-	})
 }
 
 func (c *VideoController) DeleteVideoByIDHandler(ctx *fiber.Ctx) error {
