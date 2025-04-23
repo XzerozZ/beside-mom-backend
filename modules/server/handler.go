@@ -35,11 +35,13 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 
 	setupAuthRoutes(app, db, jwt, mail)
 	setupQuestRoutes(app, db, jwt)
+	setupHistoryRoutes(app, db, jwt)
 	setupLikeRoutes(app, db, jwt)
 	setupAppointRoutes(app, db, jwt)
 	setupVideoRoutes(app, db, jwt, supa)
 	setupCareRoutes(app, db, jwt, supa)
 	setupKidRoutes(app, db, jwt, supa)
+	setupQuizRoutes(app, db, jwt, supa)
 	setupUserRoutes(app, db, jwt, supa, mail)
 }
 
@@ -61,12 +63,12 @@ func setupQuestRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	usecase := usecases.NewQuestionUseCase(repository)
 	controller := controllers.NewQuestionController(usecase)
 
-	questionGroup := app.Group("/question")
-	questionGroup.Post("/", middlewares.JWTMiddleware(jwt), controller.CreateQuestionHandler)
+	questionGroup := app.Group("/question", middlewares.JWTMiddleware(jwt), middlewares.AdminMiddleware)
+	questionGroup.Post("/", controller.CreateQuestionHandler)
 	questionGroup.Get("/", controller.GetAllQuestionHandler)
-	questionGroup.Get("/:id", middlewares.JWTMiddleware(jwt), controller.GetQuestionByIDHandler)
-	questionGroup.Put("/:id", middlewares.JWTMiddleware(jwt), controller.UpdateQuestionByIDHandler)
-	questionGroup.Delete("/:id", middlewares.JWTMiddleware(jwt), controller.DeleteQuestionByIDHandler)
+	questionGroup.Get("/:id", controller.GetQuestionByIDHandler)
+	questionGroup.Put("/:id", controller.UpdateQuestionByIDHandler)
+	questionGroup.Delete("/:id", controller.DeleteQuestionByIDHandler)
 }
 
 func setupVideoRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase) {
@@ -109,6 +111,19 @@ func setupLikeRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	likeGroup.Delete("/:video_id", controller.DeleteLikeByIDHandler)
 }
 
+func setupQuizRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase) {
+	repository := repositories.NewGormQuizRepository(db)
+	usecase := usecases.NewQuizUseCase(repository, supa)
+	controller := controllers.NewQuizController(usecase)
+
+	quizGroup := app.Group("/quiz", middlewares.JWTMiddleware(jwt))
+	quizGroup.Post("/", middlewares.AdminMiddleware, controller.CreateQuizHandler)
+	quizGroup.Get("/", controller.GetAllQuizHandler)
+	quizGroup.Get("/:id", controller.GetQuizByIDHandler)
+	quizGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateQuizByIDHandler)
+	quizGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteQuizByIDHandler)
+}
+
 func setupKidRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase) {
 	repository := repositories.NewGormKidsRepository(db)
 	usecase := usecases.NewKidUseCase(repository, supa)
@@ -144,4 +159,15 @@ func setupCareRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	careGroup.Get("/:id", controller.GetCareByID)
 	careGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateCareHandler)
 	careGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteCareCareHandler)
+}
+
+func setupHistoryRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
+	repository := repositories.NewGormHistoryRepository(db)
+	evaluate := repositories.NewGormEvaluateRepository(db)
+	usecase := usecases.NewHistoryUseCase(repository, evaluate)
+	controller := controllers.NewHistoryController(usecase)
+
+	historyGroup := app.Group("/history", middlewares.JWTMiddleware(jwt))
+	historyGroup.Post("/:times/kid/:id", controller.CreateHistoryHandler)
+	historyGroup.Get("/:times/kid/:id", controller.GetAllHistoryHandler)
 }

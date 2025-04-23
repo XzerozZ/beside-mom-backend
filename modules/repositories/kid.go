@@ -3,6 +3,7 @@ package repositories
 import (
 	"Beside-Mom-BE/modules/entities"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -23,7 +24,58 @@ type KidsRepository interface {
 }
 
 func (r *GormKidsRepository) CreateKid(kid *entities.Kid) (*entities.Kid, error) {
-	if err := r.db.Create(&kid).Error; err != nil {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&kid).Error; err != nil {
+			return err
+		}
+
+		var quizzes []entities.Quiz
+		if err := tx.Find(&quizzes).Error; err != nil {
+			return err
+		}
+
+		periods := []string{
+			"แรกเกิด", "1 เดือน", "2 เดือน", "3 - 4 เดือน",
+			"5 - 6 เดือน", "7 - 8 เดือน", "8 - 9 เดือน", "10 - 12 เดือน",
+		}
+
+		for i, period := range periods {
+			eval := entities.Evaluate{
+				ID:             uuid.New().String(),
+				Period:         period,
+				Status:         false,
+				Solution:       "รอประเมิน",
+				EvaluatedTimes: i + 1,
+				Times:          0,
+				KidID:          kid.ID,
+			}
+
+			if err := tx.Create(&eval).Error; err != nil {
+				return err
+			}
+
+			for _, quiz := range quizzes {
+				history := entities.History{
+					ID:             uuid.New().String(),
+					QuizID:         quiz.ID,
+					Answer:         false,
+					Status:         false,
+					Solution:       "รอประเมิน",
+					EvaluatedTimes: eval.EvaluatedTimes,
+					Times:          0,
+					KidID:          kid.ID,
+				}
+
+				if err := tx.Create(&history).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return nil, err
 	}
 

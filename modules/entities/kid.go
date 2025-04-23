@@ -14,7 +14,8 @@ type Kid struct {
 	BirthLength float64   `json:"birth_length" gorm:"not null"`
 	Note        string    `json:"note" gorm:"not null"`
 	ImageLink   string    `json:"image_link"`
-	UserID      string    `json:"user_id" gorm:"foreignKey:UserID"`
+	UserID      string    `json:"user_id" gorm:"not null"`
+	User        User      `json:"-" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

@@ -78,7 +78,7 @@ func (c *CareController) CreateCareHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.StatusBadRequest,
-			"message":     "Please add banner of the video",
+			"message":     "Please add banner of the care",
 			"result":      nil,
 		})
 	} else {
