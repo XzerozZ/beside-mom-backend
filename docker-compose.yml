@@ -1,19 +1,19 @@
 services:
   postgres:
     image: postgres:latest
-    container_name: SE
+    container_name: Beside-mom
     ports:
       - "${DB_PORT}:${DB_PORT}"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: Beside-Mom
+      POSTGRES_DB: BesideMom
     volumes:
       - ./data:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin
+    container_name: pgadmin-for-besidemom
     ports:
       - "5050:80"
     environment:
@@ -30,6 +30,13 @@ services:
       dockerfile: dockerfile
     ports:
       - "${APP_PORT}:${APP_PORT}"
-    env_file: 
-      - .env
+    environment: 
+      - DB_HOST=postgres
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=5432
+      - APP_HOST=0.0.0.0
+      - APP_PORT=5000
+      - JWT_SECRET=${JWT_SECRET}
     restart: on-failure
