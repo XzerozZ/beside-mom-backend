@@ -42,10 +42,6 @@ func (u *HistoryUseCaseImpl) CreateHistory(evaluateTimes int, kidID string, answ
 
 	allPass := true
 	for i, d := range data {
-		d.ID = uuid.New().String()
-		d.Times = 1
-		d.Status = true
-		d.Answer = answers[i]
 		if answers[i] {
 			d.Solution = "ผ่าน"
 		} else {
@@ -53,7 +49,18 @@ func (u *HistoryUseCaseImpl) CreateHistory(evaluateTimes int, kidID string, answ
 			allPass = false
 		}
 
-		err = u.repo.CreateHisotry(d)
+		history := entities.History{
+			ID:             uuid.New().String(),
+			QuizID:         d.QuizID,
+			Answer:         answers[i],
+			Status:         true,
+			Solution:       d.Solution,
+			EvaluatedTimes: d.EvaluatedTimes,
+			Times:          d.Times + 1,
+			KidID:          d.KidID,
+		}
+
+		err = u.repo.CreateHisotry(history)
 		if err != nil {
 			return err
 		}
