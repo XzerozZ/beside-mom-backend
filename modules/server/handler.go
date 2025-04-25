@@ -38,6 +38,8 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 	setupHistoryRoutes(app, db, jwt)
 	setupLikeRoutes(app, db, jwt)
 	setupAppointRoutes(app, db, jwt)
+	setupEvaluateRoutes(app, db, jwt)
+	setupGrowthRoutes(app, db, jwt)
 	setupVideoRoutes(app, db, jwt, supa)
 	setupCareRoutes(app, db, jwt, supa)
 	setupKidRoutes(app, db, jwt, supa)
@@ -144,6 +146,8 @@ func setupAppointRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	appointGroup.Post("/:userID", middlewares.AdminMiddleware, controller.CreateAppointmentHandler)
 	appointGroup.Get("/", controller.GetAppHandler)
 	appointGroup.Get("/:id", controller.GetAppByIDHandler)
+	appointGroup.Get("/history/progress/:id", controller.GetAppInProgressUserIDHandler)
+	appointGroup.Get("/history/mom/:id", middlewares.AdminMiddleware, controller.GetAllAppUserIDHandler)
 	appointGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateAppByIDHandler)
 	appointGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteAppByIDHandler)
 }
@@ -169,5 +173,28 @@ func setupHistoryRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 
 	historyGroup := app.Group("/history", middlewares.JWTMiddleware(jwt))
 	historyGroup.Post("/:times/kid/:id", controller.CreateHistoryHandler)
-	historyGroup.Get("/:times/kid/:id", controller.GetAllHistoryHandler)
+	historyGroup.Get("evaluate/:times/kid/:id", controller.GetHistoryHandler)
+	historyGroup.Get("latest/:times/kid/:id", controller.GetLatestHistoryHandler)
+}
+
+func setupEvaluateRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
+	repository := repositories.NewGormEvaluateRepository(db)
+	usecase := usecases.NewEvaluateUseCase(repository)
+	controller := controllers.NewEvaluateController(usecase)
+
+	evaluateGroup := app.Group("/evaluate", middlewares.JWTMiddleware(jwt))
+	evaluateGroup.Get("/all/:id", controller.GetAllEvaluateHandler)
+}
+
+func setupGrowthRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
+	repository := repositories.NewGormGrowthRepository(db)
+	kidrepository := repositories.NewGormKidsRepository(db)
+	usecase := usecases.NewGrowthUseCase(repository, kidrepository)
+	controller := controllers.NewGrowthController(usecase)
+
+	growthGroup := app.Group("/growth", middlewares.JWTMiddleware(jwt))
+	growthGroup.Post("/kid/:id", controller.CreateGrowthHandler)
+	growthGroup.Get("/kid/:id/summary", controller.GetSummary)
+	growthGroup.Get("/kid/:id/all", controller.GetAllGrowth)
+	growthGroup.Put("/:id", controller.UpdateGrowthByID)
 }

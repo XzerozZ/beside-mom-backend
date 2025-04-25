@@ -15,7 +15,7 @@ import (
 type KidUseCase interface {
 	CreateKid(kid *entities.Kid, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 	GetKidByID(id string) (map[string]interface{}, error)
-	GetKidByUserID(userID string) ([]map[string]interface{}, error)
+	GetKidByIDForUser(id string) (map[string]interface{}, error)
 	UpdateKidByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 }
 
@@ -90,6 +90,46 @@ func (u *KidUseCaseImpl) GetKidByID(id string) (map[string]interface{}, error) {
 		"birthweight": kid.BirthWeight,
 		"birthlength": kid.BirthLength,
 		"note":        kid.Note,
+		"growth":      kid.Growth,
+		"days":        days,
+		"months":      months,
+		"age":         age,
+	}
+
+	return kidData, nil
+}
+
+func (u *KidUseCaseImpl) GetKidByIDForUser(id string) (map[string]interface{}, error) {
+	kid, err := u.repo.GetKidByIDForUser(id)
+	if err != nil {
+		return nil, err
+	}
+
+	days, err := utils.CalculateAgeInDays(kid.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	months, err := utils.CalculateAgeInMonths(kid.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	age, err := utils.CalculateAge(kid.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	kidData := map[string]interface{}{
+		"id":          kid.ID,
+		"firstname":   kid.Firstname,
+		"lastname":    kid.Lastname,
+		"username":    kid.Username,
+		"sex":         kid.Sex,
+		"birthdate":   kid.BirthDate,
+		"birthweight": kid.BirthWeight,
+		"birthlength": kid.BirthLength,
+		"note":        kid.Note,
 		"days":        days,
 		"months":      months,
 		"age":         age,
@@ -130,6 +170,7 @@ func (u *KidUseCaseImpl) GetKidByUserID(userID string) ([]map[string]interface{}
 			"birthdate":   kid.BirthDate,
 			"birthweight": kid.BirthWeight,
 			"birthlength": kid.BirthLength,
+			"growth":      kid.Growth,
 			"note":        kid.Note,
 			"days":        days,
 			"months":      months,

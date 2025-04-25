@@ -97,7 +97,24 @@ func (c *KidController) GetKidByIDHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	kid, err := c.usecase.GetKidByID(kidID)
+	role, ok := ctx.Locals("role").(string)
+	if !ok || role == "" {
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusForbidden,
+			"message":     "Forbidden: Missing role",
+			"result":      nil,
+		})
+	}
+
+	var data interface{}
+	var err error
+	if role == "Admin" {
+		data, err = c.usecase.GetKidByID(kidID)
+	} else {
+		data, err = c.usecase.GetKidByIDForUser(kidID)
+	}
+
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,
@@ -111,7 +128,7 @@ func (c *KidController) GetKidByIDHandler(ctx *fiber.Ctx) error {
 		"status":      "Success",
 		"status_code": fiber.StatusOK,
 		"message":     "Kid retrieved successfully",
-		"result":      kid,
+		"result":      data,
 	})
 }
 

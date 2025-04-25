@@ -41,6 +41,7 @@ func InitDB(config configs.PostgreSQL) {
 		&entities.Quiz{},
 		&entities.Evaluate{},
 		&entities.History{},
+		&entities.Growth{},
 	)
 
 	insertRoles()

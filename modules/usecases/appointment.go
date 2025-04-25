@@ -3,13 +3,13 @@ package usecases
 import (
 	"Beside-Mom-BE/modules/entities"
 	"Beside-Mom-BE/modules/repositories"
-	"log"
 )
 
 type AppUseCase interface {
 	CreateAppointment(app *entities.Appointment) (*entities.Appointment, error)
 	GetAppByID(id string) (map[string]interface{}, error)
 	GetAppByUserID(userID string) ([]map[string]interface{}, error)
+	GetAppInProgressByUserID(userID string) ([]map[string]interface{}, error)
 	GetAllApp() ([]map[string]interface{}, error)
 	UpdateAppByID(id string, app *entities.Appointment) (*entities.Appointment, error)
 	DeleteAppByID(id string) error
@@ -42,7 +42,6 @@ func (u *AppUseCaseImpl) GetAppByID(id string) (map[string]interface{}, error) {
 		"id":          app.ID,
 		"date":        app.Date,
 		"start_time":  app.StartTime,
-		"end_time":    app.EndTime,
 		"building":    app.Building,
 		"requirement": app.Requirement,
 		"status":      app.Status,
@@ -51,6 +50,31 @@ func (u *AppUseCaseImpl) GetAppByID(id string) (map[string]interface{}, error) {
 	}
 
 	return appData, nil
+}
+func (u *AppUseCaseImpl) GetAppInProgressByUserID(userID string) ([]map[string]interface{}, error) {
+	apps, err := u.repo.GetAppInProgressByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var appsList []map[string]interface{}
+	for _, app := range apps {
+		appData := map[string]interface{}{
+			"id":          app.ID,
+			"date":        app.Date,
+			"start_time":  app.StartTime,
+			"building":    app.Building,
+			"requirement": app.Requirement,
+			"doctor":      app.Doctor,
+			"status":      app.Status,
+			"user_id":     app.User.ID,
+			"name":        app.User.Firstname + " " + app.User.Lastname,
+		}
+
+		appsList = append(appsList, appData)
+	}
+
+	return appsList, nil
 }
 
 func (u *AppUseCaseImpl) GetAppByUserID(userID string) ([]map[string]interface{}, error) {
@@ -65,15 +89,14 @@ func (u *AppUseCaseImpl) GetAppByUserID(userID string) ([]map[string]interface{}
 			"id":          app.ID,
 			"date":        app.Date,
 			"start_time":  app.StartTime,
-			"end_time":    app.EndTime,
 			"building":    app.Building,
 			"requirement": app.Requirement,
+			"doctor":      app.Doctor,
 			"status":      app.Status,
 			"user_id":     app.User.ID,
 			"name":        app.User.Firstname + " " + app.User.Lastname,
 		}
 
-		log.Println("Appointments:", app.User.ID)
 		appsList = append(appsList, appData)
 	}
 
@@ -92,15 +115,14 @@ func (u *AppUseCaseImpl) GetAllApp() ([]map[string]interface{}, error) {
 			"id":          app.ID,
 			"date":        app.Date,
 			"start_time":  app.StartTime,
-			"end_time":    app.EndTime,
 			"building":    app.Building,
 			"requirement": app.Requirement,
+			"doctor":      app.Doctor,
 			"status":      app.Status,
 			"user_id":     app.User.ID,
 			"name":        app.User.Firstname + " " + app.User.Lastname,
 		}
 
-		log.Println("Appointments:", app.User.ID)
 		appsList = append(appsList, appData)
 	}
 
@@ -115,9 +137,10 @@ func (u *AppUseCaseImpl) UpdateAppByID(id string, app *entities.Appointment) (*e
 
 	existingApp.Date = app.Date
 	existingApp.StartTime = app.StartTime
-	existingApp.EndTime = app.EndTime
 	existingApp.Building = app.Building
 	existingApp.Requirement = app.Requirement
+	existingApp.Doctor = app.Doctor
+	existingApp.Status = app.Status
 	return u.repo.UpdateAppByID(existingApp)
 }
 

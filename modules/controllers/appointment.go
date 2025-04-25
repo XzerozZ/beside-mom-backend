@@ -3,6 +3,7 @@ package controllers
 import (
 	"Beside-Mom-BE/modules/entities"
 	"Beside-Mom-BE/modules/usecases"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,10 +32,10 @@ func (c *AppController) CreateAppointmentHandler(ctx *fiber.Ctx) error {
 
 	date := ctx.FormValue("date")
 	startTime := ctx.FormValue("start_time")
-	endTime := ctx.FormValue("end_time")
 	building := ctx.FormValue("building")
 	requirement := ctx.FormValue("requirement")
-	if date == "" || startTime == "" || endTime == "" || building == "" {
+	doctor := ctx.FormValue("doctor")
+	if date == "" || startTime == "" || building == "" || doctor == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.StatusBadRequest,
@@ -63,25 +64,15 @@ func (c *AppController) CreateAppointmentHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	parsedEndTime, err := time.Parse("15:04", endTime)
-	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":      "Error",
-			"status_code": fiber.StatusBadRequest,
-			"message":     "Invalid end time format, expected HH:MM",
-			"result":      nil,
-		})
-	}
-
 	appointment := entities.Appointment{
 		ID:          uuid.New().String(),
 		UserID:      Id,
 		Date:        parsedDate,
 		StartTime:   parsedStartTime,
-		EndTime:     parsedEndTime,
 		Building:    building,
+		Doctor:      doctor,
 		Requirement: requirement,
-		Status:      "scheduled",
+		Status:      1,
 	}
 
 	createdApp, err := c.usecase.CreateAppointment(&appointment)
@@ -178,6 +169,66 @@ func (c *AppController) GetAppHandler(ctx *fiber.Ctx) error {
 	})
 }
 
+func (c *AppController) GetAllAppUserIDHandler(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	data, err := c.usecase.GetAppByUserID(id)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "Appointment retrieved successfully",
+		"result":      data,
+	})
+}
+
+func (c *AppController) GetAppInProgressUserIDHandler(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	data, err := c.usecase.GetAppInProgressByUserID(id)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "Appointment retrieved successfully",
+		"result":      data,
+	})
+}
+
 func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	userID, ok := ctx.Locals("user_id").(string)
@@ -192,10 +243,11 @@ func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 
 	date := ctx.FormValue("date")
 	startTime := ctx.FormValue("start_time")
-	endTime := ctx.FormValue("end_time")
 	building := ctx.FormValue("building")
 	requirement := ctx.FormValue("requirement")
-	if date == "" || startTime == "" || endTime == "" || building == "" {
+	doctor := ctx.FormValue("doctor")
+	status := ctx.FormValue("status")
+	if date == "" || startTime == "" || building == "" || doctor == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.StatusBadRequest,
@@ -224,12 +276,12 @@ func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	parsedEndTime, err := time.Parse("15:04", endTime)
+	parsedStatus, err := strconv.Atoi(status)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.StatusBadRequest,
-			"message":     "Invalid end time format, expected HH:MM",
+			"message":     "Invalid length value",
 			"result":      nil,
 		})
 	}
@@ -237,9 +289,10 @@ func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 	appointment := entities.Appointment{
 		Date:        parsedDate,
 		StartTime:   parsedStartTime,
-		EndTime:     parsedEndTime,
 		Building:    building,
+		Doctor:      doctor,
 		Requirement: requirement,
+		Status:      parsedStatus,
 	}
 
 	updatedApp, err := c.usecase.UpdateAppByID(id, &appointment)
