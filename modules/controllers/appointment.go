@@ -200,7 +200,6 @@ func (c *AppController) GetAllAppUserIDHandler(ctx *fiber.Ctx) error {
 }
 
 func (c *AppController) GetAppInProgressUserIDHandler(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
 	userID, ok := ctx.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -211,7 +210,7 @@ func (c *AppController) GetAppInProgressUserIDHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, err := c.usecase.GetAppInProgressByUserID(id)
+	data, err := c.usecase.GetAppInProgressByUserID(userID)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,
