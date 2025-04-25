@@ -146,7 +146,7 @@ func setupAppointRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	appointGroup.Post("/:userID", middlewares.AdminMiddleware, controller.CreateAppointmentHandler)
 	appointGroup.Get("/", controller.GetAppHandler)
 	appointGroup.Get("/:id", controller.GetAppByIDHandler)
-	appointGroup.Get("/history/progress/:id", controller.GetAppInProgressUserIDHandler)
+	appointGroup.Get("/history/progress", controller.GetAppInProgressUserIDHandler)
 	appointGroup.Get("/history/mom/:id", middlewares.AdminMiddleware, controller.GetAllAppUserIDHandler)
 	appointGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateAppByIDHandler)
 	appointGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteAppByIDHandler)
