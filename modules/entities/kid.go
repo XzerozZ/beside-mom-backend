@@ -10,11 +10,12 @@ type Kid struct {
 	Sex         string    `json:"sex" gorm:"not null"`
 	BirthDate   time.Time `json:"birth_date" gorm:"not null;type:date"`
 	BloodType   string    `json:"blood_type" gorm:"not null"`
-	BirthWeight float64   `json:"birth_weight" gorm:"not null"`
-	BirthLength float64   `json:"birth_length" gorm:"not null"`
+	BirthWeight float64   `json:"weight" gorm:"not null"`
+	BirthLength float64   `json:"length" gorm:"not null"`
 	Note        string    `json:"note" gorm:"not null"`
 	ImageLink   string    `json:"image_link"`
 	UserID      string    `json:"user_id" gorm:"not null"`
+	Growth      []Growth  `json:"growth" gorm:"foreignKey:KidID"`
 	User        User      `json:"-" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`

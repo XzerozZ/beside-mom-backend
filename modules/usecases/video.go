@@ -148,8 +148,10 @@ func (u *VideoUseCaseImpl) GetVideoByID(id string) (map[string]interface{}, erro
 		"title":       video.Title,
 		"description": video.Description,
 		"link":        video.Link,
+		"banner":      video.Banner,
 		"view":        video.View,
 		"count_like":  countLike,
+		"publish_at":  video.CreatedAt,
 	}
 
 	return videoData, nil

@@ -78,7 +78,9 @@ func (r *GormUserRepository) GetRoleByName(name string) (entities.Role, error) {
 
 func (r *GormUserRepository) GetMomByID(id string) (*entities.User, error) {
 	var user entities.User
-	if err := r.db.Preload("Role").Preload("Kid").Where("id = ? AND role_id = ?", id, 2).First(&user).Error; err != nil {
+	if err := r.db.Preload("Role").Preload("Kid.Growth", func(db *gorm.DB) *gorm.DB {
+		return db.Order("months")
+	}).Where("id = ? AND role_id = ?", id, 2).First(&user).Error; err != nil {
 		return nil, err
 	}
 

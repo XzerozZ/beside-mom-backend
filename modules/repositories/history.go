@@ -16,22 +16,13 @@ func NewGormHistoryRepository(db *gorm.DB) *GormHistoryRepository {
 
 type HistoryRepository interface {
 	CreateHisotry(history entities.History) error
-	GetHistoryOfEvaluate(times int, kidID string) ([]entities.History, error)
+	GetHistoryPerQuizByTimez(times int, kidID string) (map[int]entities.GroupedHistory, error)
 	GetLatestHistoryPerQuiz(times int, kidID string) ([]entities.History, error)
 	DeleteHistoryWithTimes(evaluatedTimes int, kidID string, times int) error
 }
 
 func (r *GormHistoryRepository) CreateHisotry(history entities.History) error {
 	return r.db.Create(&history).Error
-}
-
-func (r *GormHistoryRepository) GetHistoryOfEvaluate(times int, kidID string) ([]entities.History, error) {
-	var histories []entities.History
-	if err := r.db.Where("evaluated_times = ? AND kid_id = ?", times, kidID).Find(&histories).Error; err != nil {
-		return nil, err
-	}
-
-	return histories, nil
 }
 
 func (r *GormHistoryRepository) GetLatestHistoryPerQuiz(times int, kidID string) ([]entities.History, error) {
@@ -57,6 +48,28 @@ func (r *GormHistoryRepository) GetLatestHistoryPerQuiz(times int, kidID string)
 	}
 
 	return histories, nil
+}
+
+func (r *GormHistoryRepository) GetHistoryPerQuizByTimez(times int, kidID string) (map[int]entities.GroupedHistory, error) {
+	var histories []entities.History
+	if err := r.db.Where("evaluated_times = ? AND kid_id = ?", times, kidID).Find(&histories).Error; err != nil {
+		return nil, err
+	}
+
+	grouped := make(map[int]entities.GroupedHistory)
+
+	for _, h := range histories {
+		g := grouped[h.Times]
+		g.Histories = append(g.Histories, h)
+
+		if h.CreatedAt.After(g.DoneAt) {
+			g.DoneAt = h.CreatedAt
+		}
+
+		grouped[h.Times] = g
+	}
+
+	return grouped, nil
 }
 
 func (r *GormHistoryRepository) DeleteHistoryWithTimes(evaluatedTimes int, kidID string, times int) error {
