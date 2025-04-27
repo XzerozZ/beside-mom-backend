@@ -167,6 +167,8 @@ func (u *KidUseCaseImpl) GetKidByUserID(userID string) ([]map[string]interface{}
 			"lastname":    kid.Lastname,
 			"username":    kid.Username,
 			"sex":         kid.Sex,
+			"blood":       kid.BloodType,
+			"imagelink":   kid.ImageLink,
 			"birthdate":   kid.BirthDate,
 			"birthweight": kid.BirthWeight,
 			"birthlength": kid.BirthLength,
