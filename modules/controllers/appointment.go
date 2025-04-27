@@ -30,6 +30,7 @@ func (c *AppController) CreateAppointmentHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
+	title := ctx.FormValue("title")
 	date := ctx.FormValue("date")
 	startTime := ctx.FormValue("start_time")
 	building := ctx.FormValue("building")
@@ -67,6 +68,7 @@ func (c *AppController) CreateAppointmentHandler(ctx *fiber.Ctx) error {
 	appointment := entities.Appointment{
 		ID:          uuid.New().String(),
 		UserID:      Id,
+		Title:       title,
 		Date:        parsedDate,
 		StartTime:   parsedStartTime,
 		Building:    building,
@@ -240,6 +242,7 @@ func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
+	title := ctx.FormValue("title")
 	date := ctx.FormValue("date")
 	startTime := ctx.FormValue("start_time")
 	building := ctx.FormValue("building")
@@ -286,6 +289,7 @@ func (c *AppController) UpdateAppByIDHandler(ctx *fiber.Ctx) error {
 	}
 
 	appointment := entities.Appointment{
+		Title:       title,
 		Date:        parsedDate,
 		StartTime:   parsedStartTime,
 		Building:    building,

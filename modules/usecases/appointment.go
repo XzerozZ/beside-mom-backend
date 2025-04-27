@@ -40,6 +40,7 @@ func (u *AppUseCaseImpl) GetAppByID(id string) (map[string]interface{}, error) {
 
 	appData := map[string]interface{}{
 		"id":          app.ID,
+		"title":       app.Title,
 		"date":        app.Date,
 		"start_time":  app.StartTime,
 		"building":    app.Building,
@@ -61,6 +62,7 @@ func (u *AppUseCaseImpl) GetAppInProgressByUserID(userID string) ([]map[string]i
 	for _, app := range apps {
 		appData := map[string]interface{}{
 			"id":          app.ID,
+			"title":       app.Title,
 			"date":        app.Date,
 			"start_time":  app.StartTime,
 			"building":    app.Building,
@@ -87,6 +89,7 @@ func (u *AppUseCaseImpl) GetAppByUserID(userID string) ([]map[string]interface{}
 	for _, app := range apps {
 		appData := map[string]interface{}{
 			"id":          app.ID,
+			"title":       app.Title,
 			"date":        app.Date,
 			"start_time":  app.StartTime,
 			"building":    app.Building,
@@ -113,6 +116,7 @@ func (u *AppUseCaseImpl) GetAllApp() ([]map[string]interface{}, error) {
 	for _, app := range apps {
 		appData := map[string]interface{}{
 			"id":          app.ID,
+			"title":       app.Title,
 			"date":        app.Date,
 			"start_time":  app.StartTime,
 			"building":    app.Building,
@@ -135,6 +139,7 @@ func (u *AppUseCaseImpl) UpdateAppByID(id string, app *entities.Appointment) (*e
 		return nil, err
 	}
 
+	existingApp.Title = app.Title
 	existingApp.Date = app.Date
 	existingApp.StartTime = app.StartTime
 	existingApp.Building = app.Building
