@@ -124,6 +124,8 @@ func (u *VideoUseCaseImpl) GetAllVideo() ([]map[string]interface{}, error) {
 			"link":        video.Link,
 			"view":        video.View,
 			"count_like":  countLike,
+			"banner":      video.Banner,
+			"publish_at":  video.CreatedAt,
 		}
 
 		videoList = append(videoList, videoData)

@@ -4,6 +4,7 @@ import "time"
 
 type Appointment struct {
 	ID          string    `json:"a_id" gorm:"primaryKey"`
+	Title       string    `json:"title" gorm:"not null"`
 	Date        time.Time `json:"date" gorm:"not null"`
 	StartTime   time.Time `json:"start_time" gorm:"not null"`
 	Building    string    `json:"building" gorm:"not null"`
