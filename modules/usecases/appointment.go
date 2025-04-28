@@ -43,6 +43,7 @@ func (u *AppUseCaseImpl) GetAppByID(id string) (map[string]interface{}, error) {
 		"title":       app.Title,
 		"date":        app.Date,
 		"start_time":  app.StartTime,
+		"doctor":      app.Doctor,
 		"building":    app.Building,
 		"requirement": app.Requirement,
 		"status":      app.Status,
