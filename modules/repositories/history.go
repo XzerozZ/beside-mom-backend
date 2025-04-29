@@ -43,6 +43,7 @@ func (r *GormHistoryRepository) GetLatestHistoryPerQuiz(times int, kidID string)
 		Joins("JOIN (?) AS latest ON histories.quiz_id = latest.quiz_id AND histories.created_at = latest.max_created_at", subQuery).
 		Where("histories.kid_id = ? AND histories.evaluated_times = ?", kidID, times).
 		Limit(int(quizCount)).
+		Preload("Quiz").
 		Find(&histories).Error; err != nil {
 		return nil, err
 	}
