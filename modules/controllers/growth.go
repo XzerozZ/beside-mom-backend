@@ -41,6 +41,16 @@ func (c *GrowthController) CreateGrowthHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
+	date, err := time.Parse("2006-01-02", ctx.FormValue("date"))
+	if err != nil {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      fiber.ErrBadRequest.Message,
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Invalid birthdate format. Use YYYY-MM-DD",
+			"result":      nil,
+		})
+	}
+
 	length, err := strconv.ParseFloat(lengthStr, 64)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -62,10 +72,11 @@ func (c *GrowthController) CreateGrowthHandler(ctx *fiber.Ctx) error {
 	}
 
 	growth := &entities.Growth{
-		ID:     uuid.New().String(),
-		Length: length,
-		Weight: weight,
-		KidID:  kidID,
+		ID:        uuid.New().String(),
+		Length:    length,
+		Weight:    weight,
+		CreatedAt: date,
+		KidID:     kidID,
 	}
 
 	growth, err = c.usecase.CreateGrowth(kidID, growth)
@@ -202,7 +213,7 @@ func (c *GrowthController) UpdateGrowthByID(ctx *fiber.Ctx) error {
 	growth := &entities.Growth{
 		Length:    length,
 		Weight:    weight,
-		UpdatedAt: date,
+		CreatedAt: date,
 	}
 
 	growth, err = c.usecase.UpdateGrowthByID(id, growth)

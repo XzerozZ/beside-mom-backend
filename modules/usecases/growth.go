@@ -67,6 +67,7 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth) 
 
 	existingGrowth.Length = growth.Length
 	existingGrowth.Weight = growth.Weight
+	existingGrowth.UpdatedAt = growth.CreatedAt
 	updatedGrowth, err := u.repo.UpdateGrowth(existingGrowth)
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (u *GrowthUseCaseImpl) UpdateGrowthByID(id string, growth *entities.Growth)
 
 	existingGrowth.Length = growth.Length
 	existingGrowth.Weight = growth.Weight
-	existingGrowth.UpdatedAt = growth.UpdatedAt
+	existingGrowth.UpdatedAt = growth.CreatedAt
 	updatedGrowth, err := u.repo.UpdateGrowth(existingGrowth)
 	if err != nil {
 		return nil, err
