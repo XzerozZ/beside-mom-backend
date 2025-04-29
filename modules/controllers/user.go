@@ -191,8 +191,7 @@ func (c *UserController) GetAllMomHandler(ctx *fiber.Ctx) error {
 	})
 }
 
-func (c *UserController) UpdateUserByIDHandler(ctx *fiber.Ctx) error {
-	momID := ctx.Params("id")
+func (c *UserController) UpdateUserByIDForUserHandler(ctx *fiber.Ctx) error {
 	userID, ok := ctx.Locals("user_id").(string)
 	if !ok || userID == "" {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -204,7 +203,7 @@ func (c *UserController) UpdateUserByIDHandler(ctx *fiber.Ctx) error {
 	}
 
 	images, _ := ctx.FormFile("images")
-	updatedUser, err := c.usecase.UpdateUserByID(momID, images, ctx)
+	updatedUser, err := c.usecase.UpdateUserByIDForUser(userID, images, ctx)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,
@@ -219,6 +218,59 @@ func (c *UserController) UpdateUserByIDHandler(ctx *fiber.Ctx) error {
 		"status_code": fiber.StatusOK,
 		"message":     "User retrieved successfully",
 		"result":      updatedUser,
+	})
+}
+
+func (c *UserController) UpdateUserByIDForAdminHandler(ctx *fiber.Ctx) error {
+	momID := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      fiber.ErrBadRequest.Message,
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "invalid form data",
+			"result":      nil,
+		})
+	}
+
+	fileHeaders := form.File["images"]
+	user := &entities.User{
+		ID:        uuid.New().String(),
+		Firstname: form.Value["firstname"][0],
+		Lastname:  form.Value["lastname"][0],
+		Email:     form.Value["email"][0],
+	}
+
+	var image *multipart.FileHeader
+	if len(fileHeaders) > 0 {
+		image = fileHeaders[0]
+	}
+
+	data, err := c.usecase.UpdateUserByIDForAdmin(momID, user, image, ctx)
+	if err != nil {
+		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
+			"status":      fiber.ErrInternalServerError.Message,
+			"status_code": fiber.ErrInternalServerError.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "User updated successfully",
+		"result":      data,
 	})
 }
 

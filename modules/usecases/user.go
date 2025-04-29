@@ -18,7 +18,8 @@ type UserUseCase interface {
 	CreateUser(user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
-	UpdateUserByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
+	UpdateUserByIDForUser(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
+	UpdateUserByIDForAdmin(id string, user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
 	DeleteUser(id string) error
 }
 
@@ -103,7 +104,7 @@ func (u *UserUseCaseImpl) GetAllMom() ([]entities.User, error) {
 	return u.repo.GetAllMom()
 }
 
-func (u *UserUseCaseImpl) UpdateUserByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error) {
+func (u *UserUseCaseImpl) UpdateUserByIDForUser(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error) {
 	existingUser, err := u.repo.GetUserByID(id)
 	if err != nil {
 		return nil, err
@@ -128,6 +129,42 @@ func (u *UserUseCaseImpl) UpdateUserByID(id string, image *multipart.FileHeader,
 		existingUser.ImageLink = imageUrl
 	}
 
+	updatedUser, err := u.repo.UpdateUserByID(existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
+}
+
+func (u *UserUseCaseImpl) UpdateUserByIDForAdmin(id string, user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error) {
+	existingUser, err := u.repo.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if image != nil {
+		fileName := uuid.New().String() + "_title.jpg"
+		if err := ctx.SaveFile(image, "./uploads/"+fileName); err != nil {
+			return nil, err
+		}
+
+		imageUrl, err := utils.UploadImage(fileName, "", u.supa)
+		if err != nil {
+			os.Remove("./uploads/" + fileName)
+			return nil, err
+		}
+
+		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		existingUser.ImageLink = imageUrl
+	}
+
+	existingUser.Email = user.Email
+	existingUser.Firstname = user.Firstname
+	existingUser.Lastname = user.Lastname
 	updatedUser, err := u.repo.UpdateUserByID(existingUser)
 	if err != nil {
 		return nil, err

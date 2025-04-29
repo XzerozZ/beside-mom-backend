@@ -98,7 +98,8 @@ func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	userGroup.Post("/", middlewares.AdminMiddleware, controller.CreateUserandKidsHandler)
 	userGroup.Get("/", middlewares.AdminMiddleware, controller.GetAllMomHandler)
 	userGroup.Get("/info/:id", middlewares.AdminMiddleware, controller.GetMomByIDHandler)
-	userGroup.Put("/:id", controller.UpdateUserByIDHandler)
+	userGroup.Put("/", controller.UpdateUserByIDForUserHandler)
+	userGroup.Put("/:id", controller.UpdateUserByIDForAdminHandler)
 	userGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteUserHandler)
 }
 
