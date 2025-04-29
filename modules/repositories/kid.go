@@ -62,7 +62,7 @@ func (r *GormKidsRepository) CreateKid(kid *entities.Kid) (*entities.Kid, error)
 					Answer:         false,
 					Status:         false,
 					Solution:       "รอประเมิน",
-					EvaluatedTimes: eval.EvaluatedTimes + 1,
+					EvaluatedTimes: eval.EvaluatedTimes,
 					Times:          0,
 					KidID:          kid.ID,
 				}
