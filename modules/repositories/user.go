@@ -23,6 +23,7 @@ type UserRepository interface {
 	GetRoleByName(name string) (entities.Role, error)
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
+	DeleteUser(id string) error
 
 	CreateOTP(otp *entities.OTP) error
 	GetOTPByUserID(userID string) (*entities.OTP, error)
@@ -115,6 +116,14 @@ func (r *GormUserRepository) GetOTPByUserID(userID string) (*entities.OTP, error
 
 func (r *GormUserRepository) DeleteOTP(userID string) error {
 	if err := r.db.Delete(&entities.OTP{}, "user_id = ?", userID).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *GormUserRepository) DeleteUser(id string) error {
+	if err := r.db.Delete(&entities.User{}, "id = ?", id).Error; err != nil {
 		return err
 	}
 

@@ -19,6 +19,7 @@ type UserUseCase interface {
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
 	UpdateUserByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
+	DeleteUser(id string) error
 }
 
 type UserUseCaseImpl struct {
@@ -133,4 +134,8 @@ func (u *UserUseCaseImpl) UpdateUserByID(id string, image *multipart.FileHeader,
 	}
 
 	return updatedUser, nil
+}
+
+func (u *UserUseCaseImpl) DeleteUser(id string) error {
+	return u.repo.DeleteUser(id)
 }

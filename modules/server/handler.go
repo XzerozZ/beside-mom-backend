@@ -99,6 +99,7 @@ func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	userGroup.Get("/", middlewares.AdminMiddleware, controller.GetAllMomHandler)
 	userGroup.Get("/info/:id", middlewares.AdminMiddleware, controller.GetMomByIDHandler)
 	userGroup.Put("/:id", controller.UpdateUserByIDHandler)
+	userGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteUserHandler)
 }
 
 func setupLikeRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {

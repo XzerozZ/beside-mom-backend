@@ -11,7 +11,7 @@ type Appointment struct {
 	Requirement string    `json:"requirement"`
 	Doctor      string    `json:"doctor" gorm:"not null"`
 	Status      int       `json:"status" gorm:"not null"`
-	UserID      string    `json:"user_id" gorm:"not null"`
+	UserID      string    `json:"user_id" gorm:"not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	User        User      `json:"user" gorm:"foreignKey:UserID;references:ID"`
 	CreatedAt   time.Time `json:"created_at"`
 }
