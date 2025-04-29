@@ -214,7 +214,15 @@ func (u *KidUseCaseImpl) UpdateKidByID(id string, kid *entities.Kid, image *mult
 		existingKid.ImageLink = imageUrl
 	}
 
-	existingKid.Firstname = kid
+	existingKid.Firstname = kid.Firstname
+	existingKid.Lastname = kid.Lastname
+	existingKid.Username = kid.Username
+	existingKid.BirthDate = kid.BirthDate
+	existingKid.BirthLength = kid.BirthLength
+	existingKid.BirthWeight = kid.BirthWeight
+	existingKid.BloodType = kid.BloodType
+	existingKid.Note = kid.Note
+	existingKid.Sex = kid.Sex
 	updatedKid, err := u.repo.UpdateKidByID(existingKid)
 	if err != nil {
 		return nil, err
