@@ -145,7 +145,31 @@ func (c *KidController) UpdateKidByIDHandler(ctx *fiber.Ctx) error {
 	}
 
 	images, _ := ctx.FormFile("images")
-	updatedKid, err := c.usecase.UpdateKidByID(kidID, images, ctx)
+	birthWeight, _ := strconv.ParseFloat(ctx.FormValue("birthweight"), 64)
+	birthLength, _ := strconv.ParseFloat(ctx.FormValue("birthlength"), 64)
+	birthDate, err := time.Parse("2006-01-02", ctx.FormValue("birthdate"))
+	if err != nil {
+		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
+			"status":      fiber.ErrBadRequest.Message,
+			"status_code": fiber.ErrBadRequest.Code,
+			"message":     "Invalid birthdate format. Use YYYY-MM-DD",
+			"result":      nil,
+		})
+	}
+
+	kid := &entities.Kid{
+		ID:          uuid.New().String(),
+		Firstname:   ctx.FormValue("firstname"),
+		Lastname:    ctx.FormValue("lastname"),
+		Username:    ctx.FormValue("username"),
+		Sex:         ctx.FormValue("sex"),
+		BirthDate:   birthDate,
+		BloodType:   ctx.FormValue("bloodtypet"),
+		BirthWeight: birthWeight,
+		BirthLength: birthLength,
+		Note:        ctx.FormValue("note"),
+	}
+	updatedKid, err := c.usecase.UpdateKidByID(kidID, kid, images, ctx)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,

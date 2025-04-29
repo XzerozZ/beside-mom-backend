@@ -16,7 +16,7 @@ type KidUseCase interface {
 	CreateKid(kid *entities.Kid, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 	GetKidByID(id string) (map[string]interface{}, error)
 	GetKidByIDForUser(id string) (map[string]interface{}, error)
-	UpdateKidByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
+	UpdateKidByID(id string, kid *entities.Kid, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error)
 }
 
 type KidUseCaseImpl struct {
@@ -189,7 +189,7 @@ func (u *KidUseCaseImpl) GetKidByUserID(userID string) ([]map[string]interface{}
 	return kidsList, nil
 }
 
-func (u *KidUseCaseImpl) UpdateKidByID(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error) {
+func (u *KidUseCaseImpl) UpdateKidByID(id string, kid *entities.Kid, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Kid, error) {
 	existingKid, err := u.repo.GetKidByID(id)
 	if err != nil {
 		return nil, err
@@ -214,6 +214,7 @@ func (u *KidUseCaseImpl) UpdateKidByID(id string, image *multipart.FileHeader, c
 		existingKid.ImageLink = imageUrl
 	}
 
+	existingKid.Firstname = kid
 	updatedKid, err := u.repo.UpdateKidByID(existingKid)
 	if err != nil {
 		return nil, err
