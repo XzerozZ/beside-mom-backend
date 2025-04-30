@@ -16,6 +16,8 @@ type QuizUseCase interface {
 	CreateQuiz(quiz *entities.Quiz, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Quiz, error)
 	GetQuizByID(id int) (*entities.Quiz, error)
 	GetAllQuiz() ([]entities.Quiz, error)
+	GetQuizByIDandPeriod(id int, period int, cate int) (*entities.Quiz, error)
+	GetQuizByCategoryandPeriod(period int, cate int) ([]entities.Quiz, error)
 	UpdateQuizByID(id int, quiz *entities.Quiz, banner *multipart.FileHeader, ctx *fiber.Ctx) (*entities.Quiz, error)
 	DeleteQuizByID(id int) error
 }
@@ -70,6 +72,11 @@ func (u *QuizUseCaseImpl) UpdateQuizByID(id int, quiz *entities.Quiz, banner *mu
 	}
 
 	existingQuiz.Question = quiz.Question
+	existingQuiz.Description = quiz.Description
+	existingQuiz.PeriodID = quiz.PeriodID
+	existingQuiz.Solution = quiz.Solution
+	existingQuiz.Suggestion = quiz.Suggestion
+	existingQuiz.CategoryID = quiz.CategoryID
 	if banner != nil {
 		fileName := uuid.New().String() + "_title.jpg"
 		if err := ctx.SaveFile(banner, "./uploads/"+fileName); err != nil {
@@ -99,4 +106,12 @@ func (u *QuizUseCaseImpl) UpdateQuizByID(id int, quiz *entities.Quiz, banner *mu
 
 func (u *QuizUseCaseImpl) DeleteQuizByID(id int) error {
 	return u.repo.DeleteQuizByID(id)
+}
+
+func (u *QuizUseCaseImpl) GetQuizByIDandPeriod(id int, period int, cate int) (*entities.Quiz, error) {
+	return u.repo.GetQuizByIDandPeriod(id, period, cate)
+}
+
+func (u *QuizUseCaseImpl) GetQuizByCategoryandPeriod(period int, cate int) ([]entities.Quiz, error) {
+	return u.repo.GetQuizByCategoryandPeriod(period, cate)
 }

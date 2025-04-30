@@ -123,6 +123,8 @@ func setupQuizRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	quizGroup := app.Group("/quiz", middlewares.JWTMiddleware(jwt))
 	quizGroup.Post("/", middlewares.AdminMiddleware, controller.CreateQuizHandler)
 	quizGroup.Get("/", controller.GetAllQuizHandler)
+	quizGroup.Get("/period/:period/category/:category/question/:id", controller.GetQuizByIDandPeriodHandler)
+	quizGroup.Get("/period/:period/category/:category", controller.GetQuizByCategoryandPeriodHandler)
 	quizGroup.Get("/:id", controller.GetQuizByIDHandler)
 	quizGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateQuizByIDHandler)
 	quizGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteQuizByIDHandler)
@@ -174,9 +176,9 @@ func setupHistoryRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	controller := controllers.NewHistoryController(usecase)
 
 	historyGroup := app.Group("/history", middlewares.JWTMiddleware(jwt))
-	historyGroup.Post("/:times/kid/:id", controller.CreateHistoryHandler)
-	historyGroup.Get("evaluate/:times/kid/:id", controller.GetHistoryHandler)
-	historyGroup.Get("latest/:times/kid/:id", controller.GetLatestHistoryHandler)
+	historyGroup.Post("/evaluate/:times/category/:category/kid/:id", controller.CreateHistoryHandler)
+	historyGroup.Get("/evaluate/:times/kid/:id", controller.GetHistoryHandler)
+	historyGroup.Get("/latest/:times/category/:category/kid/:id", controller.GetLatestHistoryHandler)
 }
 
 func setupEvaluateRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {

@@ -9,9 +9,9 @@ import (
 )
 
 type HistoryUseCase interface {
-	CreateHistory(evaluateTimes int, kidID string, answers []bool) error
-	GetHistoryOfEvaluate(times int, kidID string) (map[int]entities.GroupedHistory, error)
-	GetLatestHistoryOfEvaluate(times int, kidID string) ([]entities.History, error)
+	CreateHistoryInPeriodandHistory(evaluateTimes int, cate int, kidID string, answers []bool) error
+	GetHistoryOfEvaluate(times int, kidID string) (map[string]map[int]entities.GroupedHistory, error)
+	GetLatestHistoryOfEvaluate(times int, kidID string, cate int) ([]entities.History, error)
 }
 
 type HistoryUseCaseImpl struct {
@@ -26,8 +26,8 @@ func NewHistoryUseCase(repo repositories.HistoryRepository, evaRepo repositories
 	}
 }
 
-func (u *HistoryUseCaseImpl) CreateHistory(evaluateTimes int, kidID string, answers []bool) error {
-	data, err := u.repo.GetLatestHistoryPerQuiz(evaluateTimes, kidID)
+func (u *HistoryUseCaseImpl) CreateHistoryInPeriodandHistory(evaluateTimes int, cate int, kidID string, answers []bool) error {
+	data, err := u.repo.GetLatestHistoryPerQuiz(evaluateTimes, cate, kidID)
 	if err != nil {
 		return err
 	}
@@ -36,44 +36,60 @@ func (u *HistoryUseCaseImpl) CreateHistory(evaluateTimes int, kidID string, answ
 		return errors.New("please answer all quizzes")
 	}
 
-	err = u.repo.DeleteHistoryWithTimes(evaluateTimes, kidID, 0)
+	err = u.repo.DeleteHistoryWithTimes(evaluateTimes, kidID, 0, cate)
 	if err != nil {
 		return err
 	}
 
-	allPass := true
 	for i, d := range data {
-		if answers[i] {
-			d.Solution = "ผ่าน"
-		} else {
-			d.Solution = "ไม่ผ่าน"
-			allPass = false
-		}
-
 		history := entities.History{
 			ID:             uuid.New().String(),
 			QuizID:         d.QuizID,
 			Answer:         answers[i],
 			Status:         true,
-			Solution:       d.Solution,
 			EvaluatedTimes: d.EvaluatedTimes,
 			Times:          d.Times + 1,
 			KidID:          d.KidID,
 		}
 
-		err = u.repo.CreateHisotry(history)
+		err = u.repo.CreateHistory(history)
 		if err != nil {
 			return err
 		}
 	}
 
-	evalSolution := "ผ่านการประเมิน"
-	Times := data[0].Times + 1
-	if !allPass {
-		evalSolution = "ไม่ผ่านการประเมินบางประการ"
+	latestHistories, err := u.repo.GetLatestHistoryPerEvaluate(evaluateTimes, kidID)
+	if err != nil {
+		return err
 	}
 
-	err = u.evaRepo.UpdateEvaluate(evaluateTimes, kidID, evalSolution, Times)
+	incomplete := false
+	failed := false
+	for _, h := range latestHistories {
+		if !h.Status {
+			incomplete = true
+			break
+		}
+
+		if !h.Answer {
+			failed = true
+		}
+	}
+
+	var result string
+	var status bool
+	if incomplete {
+		result = "กำลังประเมิน"
+		status = false
+	} else if failed {
+		result = "ไม่ผ่านการประเมินบางประการ"
+		status = true
+	} else {
+		result = "ผ่านการประเมิน"
+		status = true
+	}
+
+	err = u.evaRepo.UpdateEvaluate(evaluateTimes, kidID, result, status)
 	if err != nil {
 		return err
 	}
@@ -81,10 +97,10 @@ func (u *HistoryUseCaseImpl) CreateHistory(evaluateTimes int, kidID string, answ
 	return nil
 }
 
-func (u *HistoryUseCaseImpl) GetHistoryOfEvaluate(times int, kidID string) (map[int]entities.GroupedHistory, error) {
-	return u.repo.GetHistoryPerQuizByTimez(times, kidID)
+func (u *HistoryUseCaseImpl) GetHistoryOfEvaluate(times int, kidID string) (map[string]map[int]entities.GroupedHistory, error) {
+	return u.repo.GetHistoryPerQuizGroupedByCategoryAndTimes(times, kidID)
 }
 
-func (u *HistoryUseCaseImpl) GetLatestHistoryOfEvaluate(times int, kidID string) ([]entities.History, error) {
-	return u.repo.GetLatestHistoryPerQuiz(times, kidID)
+func (u *HistoryUseCaseImpl) GetLatestHistoryOfEvaluate(times int, kidID string, cate int) ([]entities.History, error) {
+	return u.repo.GetLatestHistoryPerQuiz(times, cate, kidID)
 }

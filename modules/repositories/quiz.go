@@ -19,6 +19,8 @@ type QuizRepository interface {
 	CreateQuiz(quiz *entities.Quiz) (*entities.Quiz, error)
 	GetQuizByID(id int) (*entities.Quiz, error)
 	GetAllQuiz() ([]entities.Quiz, error)
+	GetQuizByIDandPeriod(id int, period int, cate int) (*entities.Quiz, error)
+	GetQuizByCategoryandPeriod(period int, cate int) ([]entities.Quiz, error)
 	UpdateQuizByID(quiz *entities.Quiz) (*entities.Quiz, error)
 	DeleteQuizByID(id int) error
 }
@@ -29,19 +31,19 @@ func (r *GormQuizRepository) CreateQuiz(quiz *entities.Quiz) (*entities.Quiz, er
 	}
 
 	var evaluates []entities.Evaluate
-	if err := r.db.Where("status = ? AND solution = ?", false, "รอประเมิน").Find(&evaluates).Error; err != nil {
+	if err := r.db.Where("status = ? AND solution = ? AND period_id = ?", false, "รอประเมิน", quiz.PeriodID).Find(&evaluates).Error; err != nil {
 		return nil, err
 	}
 
 	for _, eval := range evaluates {
 		history := entities.History{
-			ID:       uuid.New().String(),
-			QuizID:   quiz.ID,
-			Answer:   false,
-			Status:   false,
-			Solution: "รอประเมิน",
-			Times:    eval.Times,
-			KidID:    eval.KidID,
+			ID:             uuid.New().String(),
+			QuizID:         quiz.ID,
+			Answer:         false,
+			Status:         false,
+			EvaluatedTimes: eval.EvaluatedTimes,
+			Times:          0,
+			KidID:          eval.KidID,
 		}
 
 		if err := r.db.Create(&history).Error; err != nil {
@@ -54,7 +56,7 @@ func (r *GormQuizRepository) CreateQuiz(quiz *entities.Quiz) (*entities.Quiz, er
 
 func (r *GormQuizRepository) GetQuizByID(id int) (*entities.Quiz, error) {
 	var quiz entities.Quiz
-	if err := r.db.First(&quiz, "id = ?", id).Error; err != nil {
+	if err := r.db.Preload("Category").Preload("Period").First(&quiz, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
@@ -63,11 +65,29 @@ func (r *GormQuizRepository) GetQuizByID(id int) (*entities.Quiz, error) {
 
 func (r *GormQuizRepository) GetAllQuiz() ([]entities.Quiz, error) {
 	var quizs []entities.Quiz
-	if err := r.db.Find(&quizs).Error; err != nil {
+	if err := r.db.Preload("Category").Preload("Period").Order("id").Find(&quizs).Error; err != nil {
 		return nil, err
 	}
 
 	return quizs, nil
+}
+
+func (r *GormQuizRepository) GetQuizByIDandPeriod(id int, period int, cate int) (*entities.Quiz, error) {
+	var quiz *entities.Quiz
+	if err := r.db.Where("period_id = ? AND category_id = ?", period, cate).Order("id").Preload("Category").Preload("Period").First(&quiz, id).Error; err != nil {
+		return nil, err
+	}
+
+	return quiz, nil
+}
+
+func (r *GormQuizRepository) GetQuizByCategoryandPeriod(period int, cate int) ([]entities.Quiz, error) {
+	var quiz []entities.Quiz
+	if err := r.db.Where("period_id = ? AND category_id = ?", period, cate).Order("id").Preload("Category").Preload("Period").Find(&quiz).Error; err != nil {
+		return nil, err
+	}
+
+	return quiz, nil
 }
 
 func (r *GormQuizRepository) UpdateQuizByID(quiz *entities.Quiz) (*entities.Quiz, error) {

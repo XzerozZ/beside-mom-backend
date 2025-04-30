@@ -18,7 +18,7 @@ func NewGormEvaluateRepository(db *gorm.DB) *GormEvaluateRepository {
 type EvaluateRepository interface {
 	GetEvaluateByID(id string) (*entities.Evaluate, error)
 	GetAllEvaluate(kidID string) ([]entities.Evaluate, error)
-	UpdateEvaluate(evaluatedTimes int, kidID string, solution string, times int) error
+	UpdateEvaluate(evaluatedTimes int, kidID string, solution string, status bool) error
 }
 
 func (r *GormEvaluateRepository) GetEvaluateByID(id string) (*entities.Evaluate, error) {
@@ -39,12 +39,11 @@ func (r *GormEvaluateRepository) GetAllEvaluate(kidID string) ([]entities.Evalua
 	return evaluate, nil
 }
 
-func (r *GormEvaluateRepository) UpdateEvaluate(evaluatedTimes int, kidID string, solution string, times int) error {
+func (r *GormEvaluateRepository) UpdateEvaluate(evaluatedTimes int, kidID string, solution string, status bool) error {
 	return r.db.Model(&entities.Evaluate{}).Where("evaluated_times = ? AND kid_id = ?", evaluatedTimes, kidID).
 		Updates(map[string]interface{}{
 			"solution":     solution,
-			"times":        times,
-			"status":       true,
+			"status":       status,
 			"completed_at": time.Now(),
 		}).Error
 }

@@ -17,6 +17,17 @@ func NewHistoryController(usecase usecases.HistoryUseCase) *HistoryController {
 }
 
 func (c *HistoryController) CreateHistoryHandler(ctx *fiber.Ctx) error {
+	categoryParam := ctx.Params("category")
+	cate, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
 	idParam := ctx.Params("times")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -74,7 +85,7 @@ func (c *HistoryController) CreateHistoryHandler(ctx *fiber.Ctx) error {
 		answers = append(answers, parsed)
 	}
 
-	err = c.usecase.CreateHistory(id, kidID, answers)
+	err = c.usecase.CreateHistoryInPeriodandHistory(id, cate, kidID, answers)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":      "Error",
@@ -133,6 +144,17 @@ func (c *HistoryController) GetHistoryHandler(ctx *fiber.Ctx) error {
 }
 
 func (c *HistoryController) GetLatestHistoryHandler(ctx *fiber.Ctx) error {
+	categoryParam := ctx.Params("category")
+	cate, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
 	idParam := ctx.Params("times")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
@@ -155,7 +177,7 @@ func (c *HistoryController) GetLatestHistoryHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	data, err := c.usecase.GetLatestHistoryOfEvaluate(id, kidID)
+	data, err := c.usecase.GetLatestHistoryOfEvaluate(id, kidID, cate)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,

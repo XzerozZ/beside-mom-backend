@@ -61,7 +61,7 @@ func (c *QuizController) CreateQuizHandler(ctx *fiber.Ctx) error {
 		banner = fileHeaders[0]
 	}
 
-	if quiz.Question == "" || quiz.Title == "" {
+	if quiz.Question == "" {
 		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
 			"status":      fiber.ErrBadRequest.Message,
 			"status_code": fiber.ErrBadRequest.Code,
@@ -111,6 +111,119 @@ func (c *QuizController) GetQuizByIDHandler(ctx *fiber.Ctx) error {
 	}
 
 	data, err := c.usecase.GetQuizByID(id)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "Quiz retrieved successfully",
+		"result":      data,
+	})
+}
+
+func (c *QuizController) GetQuizByIDandPeriodHandler(ctx *fiber.Ctx) error {
+	periodParam := ctx.Params("period")
+	period, err := strconv.Atoi(periodParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
+	categoryParam := ctx.Params("category")
+	cate, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
+	idParam := ctx.Params("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	data, err := c.usecase.GetQuizByIDandPeriod(id, period, cate)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "Quiz retrieved successfully",
+		"result":      data,
+	})
+}
+
+func (c *QuizController) GetQuizByCategoryandPeriodHandler(ctx *fiber.Ctx) error {
+	periodParam := ctx.Params("period")
+	period, err := strconv.Atoi(periodParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
+	categoryParam := ctx.Params("category")
+	cate, err := strconv.Atoi(categoryParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid quiz ID",
+			"result":      nil,
+		})
+	}
+
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	data, err := c.usecase.GetQuizByCategoryandPeriod(period, cate)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,

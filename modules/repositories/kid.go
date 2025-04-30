@@ -35,19 +35,18 @@ func (r *GormKidsRepository) CreateKid(kid *entities.Kid) (*entities.Kid, error)
 			return err
 		}
 
-		periods := []string{
-			"แรกเกิด", "1 เดือน", "2 เดือน", "3 - 4 เดือน",
-			"5 - 6 เดือน", "7 - 8 เดือน", "8 - 9 เดือน", "10 - 12 เดือน",
+		var periods []entities.Period
+		if err := tx.Find(&periods).Error; err != nil {
+			return err
 		}
 
 		for i, period := range periods {
 			eval := entities.Evaluate{
 				ID:             uuid.New().String(),
-				Period:         period,
 				Status:         false,
 				Solution:       "รอประเมิน",
 				EvaluatedTimes: i + 1,
-				Times:          0,
+				PeriodID:       period.ID,
 				KidID:          kid.ID,
 			}
 
@@ -56,12 +55,15 @@ func (r *GormKidsRepository) CreateKid(kid *entities.Kid) (*entities.Kid, error)
 			}
 
 			for _, quiz := range quizzes {
+				if quiz.PeriodID != period.ID {
+					continue
+				}
+
 				history := entities.History{
 					ID:             uuid.New().String(),
 					QuizID:         quiz.ID,
 					Answer:         false,
 					Status:         false,
-					Solution:       "รอประเมิน",
 					EvaluatedTimes: eval.EvaluatedTimes,
 					Times:          0,
 					KidID:          kid.ID,
