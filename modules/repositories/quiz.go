@@ -91,7 +91,18 @@ func (r *GormQuizRepository) GetQuizByCategoryandPeriod(period int, cate int) ([
 }
 
 func (r *GormQuizRepository) UpdateQuizByID(quiz *entities.Quiz) (*entities.Quiz, error) {
-	if err := r.db.Save(&quiz).Error; err != nil {
+	if err := r.db.
+		Model(&entities.Quiz{}).
+		Where("id = ?", quiz.ID).
+		Updates(map[string]interface{}{
+			"question":    quiz.Question,
+			"description": quiz.Description,
+			"solution":    quiz.Solution,
+			"suggestion":  quiz.Suggestion,
+			"category_id": quiz.CategoryID,
+			"period_id":   quiz.PeriodID,
+			"banner":      quiz.Banner,
+		}).Error; err != nil {
 		return nil, err
 	}
 

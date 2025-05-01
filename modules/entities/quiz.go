@@ -9,10 +9,10 @@ type Quiz struct {
 	Solution    string    `json:"solution" gorm:"not null"`
 	Suggestion  string    `json:"suggestion" gorm:"not null"`
 	Banner      string    `json:"banner" gorm:"not null"`
-	CategoryID  int       `json:"-" gorm:"not null"`
-	PeriodID    int       `json:"-" gorm:"not null"`
-	Category    Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID"`
-	Period      Period    `json:"period" gorm:"foreignKey:PeriodID;references:ID"`
+	CategoryID  int       `json:"category_id" gorm:"not null"`
+	PeriodID    int       `json:"period_id" gorm:"not null"`
+	Category    Category  `json:"category" gorm:"foreignKey:CategoryID;references:ID;"`
+	Period      Period    `json:"period" gorm:"foreignKey:PeriodID;references:ID;"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
