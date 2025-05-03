@@ -96,11 +96,11 @@ func (c *LikeController) CheckLikeHandler(ctx *fiber.Ctx) error {
 	videoID := ctx.Params("video_id")
 	if err := c.usecase.CheckLike(userID, videoID); err != nil {
 		if err.Error() == "not liked video" {
-			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"status":      "Not Found",
-				"status_code": fiber.StatusNotFound,
+			return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+				"status":      "Success",
+				"status_code": fiber.StatusOK,
 				"message":     "Not Liked Video",
-				"result":      nil,
+				"result":      false,
 			})
 		}
 
