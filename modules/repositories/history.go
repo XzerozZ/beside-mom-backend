@@ -20,6 +20,7 @@ type HistoryRepository interface {
 	GetHistoryPerQuizGroupedByCategoryAndTimes(times int, kidID string) (map[string]map[int]entities.GroupedHistory, error)
 	GetLatestHistoryPerEvaluate(times int, kidID string) ([]entities.History, error)
 	GetLatestHistoryPerQuiz(times int, cate int, kidID string) ([]entities.History, error)
+	GetHistoryResult(evaluatedTimes int, kidID string) (map[int]entities.GroupedHistory, error)
 	DeleteHistoryWithTimes(evaluatedTimes int, kidID string, times int, cate int) error
 }
 
@@ -136,6 +137,61 @@ func (r *GormHistoryRepository) GetHistoryPerQuizGroupedByCategoryAndTimes(times
 
 			groupByTimes[times] = g
 		}
+	}
+
+	return result, nil
+}
+
+func (r *GormHistoryRepository) GetHistoryResult(evaluatedTimes int, kidID string) (map[int]entities.GroupedHistory, error) {
+	var histories []entities.History
+
+	if err := r.db.
+		Joins("JOIN quizzes ON quizzes.id = histories.quiz_id").
+		Joins("JOIN categories ON categories.id = quizzes.category_id").
+		Preload("Quiz.Category").Preload("Quiz.Period").
+		Where("histories.evaluated_times = ? AND histories.kid_id = ?", evaluatedTimes, kidID).
+		Find(&histories).Error; err != nil {
+		return nil, err
+	}
+
+	latestHistories := make(map[int]entities.History)
+	for _, h := range histories {
+		if existing, found := latestHistories[h.QuizID]; !found || h.Times > existing.Times || h.CreatedAt.After(existing.CreatedAt) {
+			latestHistories[h.QuizID] = h
+		}
+	}
+
+	grouped := make(map[int][]entities.History)
+	for _, h := range latestHistories {
+		categoryID := h.Quiz.CategoryID
+		grouped[categoryID] = append(grouped[categoryID], h)
+	}
+
+	result := make(map[int]entities.GroupedHistory)
+	for categoryID, hs := range grouped {
+		group := entities.GroupedHistory{
+			Histories: hs,
+		}
+
+		allPassed := true
+		var latestTime *time.Time
+		for i, h := range hs {
+			if !h.Answer {
+				allPassed = false
+			}
+			if i == 0 || h.CreatedAt.After(*latestTime) {
+				t := h.CreatedAt
+				latestTime = &t
+			}
+		}
+
+		group.Solution = "ผ่าน"
+		if !allPassed {
+			group.Solution = "ไม่ผ่าน"
+		}
+		group.DoneAt = latestTime
+
+		result[categoryID] = group
 	}
 
 	return result, nil

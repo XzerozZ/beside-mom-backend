@@ -179,6 +179,7 @@ func setupHistoryRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	historyGroup.Post("/evaluate/:times/category/:category/kid/:id", controller.CreateHistoryHandler)
 	historyGroup.Get("/evaluate/:times/kid/:id", controller.GetHistoryHandler)
 	historyGroup.Get("/latest/:times/category/:category/kid/:id", controller.GetLatestHistoryHandler)
+	historyGroup.Get("/result/evaluate/:times/kid/:id", controller.GetHistoryResultHandler)
 }
 
 func setupEvaluateRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {

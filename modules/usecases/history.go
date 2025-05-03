@@ -12,6 +12,7 @@ type HistoryUseCase interface {
 	CreateHistoryInPeriodandHistory(evaluateTimes int, cate int, kidID string, answers []bool) error
 	GetHistoryOfEvaluate(times int, kidID string) (map[string]map[int]entities.GroupedHistory, error)
 	GetLatestHistoryOfEvaluate(times int, kidID string, cate int) ([]entities.History, error)
+	GetHistoryResult(evaluatedTimes int, kidID string) (map[int]entities.GroupedHistory, error)
 }
 
 type HistoryUseCaseImpl struct {
@@ -103,4 +104,8 @@ func (u *HistoryUseCaseImpl) GetHistoryOfEvaluate(times int, kidID string) (map[
 
 func (u *HistoryUseCaseImpl) GetLatestHistoryOfEvaluate(times int, kidID string, cate int) ([]entities.History, error) {
 	return u.repo.GetLatestHistoryPerQuiz(times, cate, kidID)
+}
+
+func (u *HistoryUseCaseImpl) GetHistoryResult(evaluatedTimes int, kidID string) (map[int]entities.GroupedHistory, error) {
+	return u.repo.GetHistoryResult(evaluatedTimes, kidID)
 }

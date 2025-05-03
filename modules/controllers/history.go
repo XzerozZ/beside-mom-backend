@@ -194,3 +194,44 @@ func (c *HistoryController) GetLatestHistoryHandler(ctx *fiber.Ctx) error {
 		"result":      data,
 	})
 }
+
+func (c *HistoryController) GetHistoryResultHandler(ctx *fiber.Ctx) error {
+	idParam := ctx.Params("times")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid Evaluate Time",
+			"result":      nil,
+		})
+	}
+
+	kidID := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusUnauthorized,
+			"message":     "Unauthorized: Missing user ID",
+			"result":      nil,
+		})
+	}
+
+	data, err := c.usecase.GetHistoryResult(id, kidID)
+	if err != nil {
+		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
+			"status":      fiber.ErrNotFound.Message,
+			"status_code": fiber.ErrNotFound.Code,
+			"message":     err.Error(),
+			"result":      nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":      "Success",
+		"status_code": fiber.StatusOK,
+		"message":     "History retrieved successfully",
+		"result":      data,
+	})
+}
