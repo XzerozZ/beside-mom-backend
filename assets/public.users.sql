@@ -1,0 +1,3 @@
+INSERT INTO "public"."users" ("id", "firstname", "lastname", "email", "password", "image_link", "role_id", "created_at", "updated_at") VALUES
+('6b601f60-aa99-4c67-9b57-3e6efd9e5820', 'ชิณภัทร', 'สุขทอง', 'naymegadragon@gmail.com', '$2a$10$CG9T9fjP/FcuxRKZtUP6xOfhr3nTCjzU1t.mZSv2pnfHbgtoRAtwC', '', 1, '2025-05-01 17:46:03.980945+00', '2025-05-01 17:46:03.980945+00'),
+('479c58d8-759a-474b-96d9-3c26104969be', 'ณัชพล', 'พลแหลม', 'nay0w0aa@gmail.com', '$2a$10$Nn0M8UYh/pgXNphfivryHeMmF22EDYRWVyF8V04vmUq/pcUarC.PS', 'https://vjbnjkvrtsdckisfguzf.supabase.co/storage/v1/object/public/Beside-Mom/d551421f-6ef6-4fe8-b25e-809530effdf7_title.jpg', 2, '2025-05-01 17:49:18.842771+00', '2025-05-01 17:49:18.842771+00');

@@ -1,0 +1,2 @@
+INSERT INTO "public"."kids" ("id", "firstname", "lastname", "username", "sex", "birth_date", "blood_type", "birth_weight", "birth_length", "note", "image_link", "user_id", "created_at", "updated_at") VALUES
+('32943015-4fe7-4684-8bcc-edfc88e00c4a', 'ธนา', 'เทพทมิฬ', 'นา', 'ชาย', '2025-01-24', 'O', '2', '2', '-', 'https://vjbnjkvrtsdckisfguzf.supabase.co/storage/v1/object/public/Beside-Mom/e47d7c20-5de4-4fc8-8d13-8bf79699aaeb_title.jpg', '479c58d8-759a-474b-96d9-3c26104969be', '2025-05-01 17:49:23.048862+00', '2025-05-01 17:49:23.048862+00');

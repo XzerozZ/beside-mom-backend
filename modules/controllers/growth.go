@@ -72,14 +72,13 @@ func (c *GrowthController) CreateGrowthHandler(ctx *fiber.Ctx) error {
 	}
 
 	growth := &entities.Growth{
-		ID:        uuid.New().String(),
-		Length:    length,
-		Weight:    weight,
-		CreatedAt: date,
-		KidID:     kidID,
+		ID:     uuid.New().String(),
+		Length: length,
+		Weight: weight,
+		KidID:  kidID,
 	}
 
-	growth, err = c.usecase.CreateGrowth(kidID, growth)
+	growth, err = c.usecase.CreateGrowth(kidID, growth, date)
 	if err != nil {
 		return ctx.Status(fiber.ErrInternalServerError.Code).JSON(fiber.Map{
 			"status":      fiber.ErrInternalServerError.Message,

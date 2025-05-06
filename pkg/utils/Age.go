@@ -45,3 +45,13 @@ func CalculateAge(birthDate time.Time) (int, error) {
 
 	return years, nil
 }
+
+func CompareAgeKid(birthDate time.Time, date time.Time) (int, error) {
+	months := (date.Year() - birthDate.Year()) * 12
+	months += int(date.Month() - birthDate.Month())
+	if date.Day() < birthDate.Day() {
+		months--
+	}
+
+	return months, nil
+}

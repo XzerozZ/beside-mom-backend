@@ -97,7 +97,7 @@ func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.
 	userGroup := app.Group("/user", middlewares.JWTMiddleware(jwt))
 	userGroup.Post("/", middlewares.AdminMiddleware, controller.CreateUserandKidsHandler)
 	userGroup.Get("/", middlewares.AdminMiddleware, controller.GetAllMomHandler)
-	userGroup.Get("/info/:id", middlewares.AdminMiddleware, controller.GetMomByIDHandler)
+	userGroup.Get("/info/:id", controller.GetMomByIDHandler)
 	userGroup.Put("/", controller.UpdateUserByIDForUserHandler)
 	userGroup.Put("/:id", controller.UpdateUserByIDForAdminHandler)
 	userGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteUserHandler)
@@ -179,6 +179,7 @@ func setupHistoryRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	historyGroup.Post("/evaluate/:times/category/:category/kid/:id", controller.CreateHistoryHandler)
 	historyGroup.Get("/evaluate/:times/kid/:id", controller.GetHistoryHandler)
 	historyGroup.Get("/latest/:times/category/:category/kid/:id", controller.GetLatestHistoryHandler)
+	historyGroup.Get("/result/evaluate/:times/kid/:id", controller.GetHistoryResultHandler)
 }
 
 func setupEvaluateRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
