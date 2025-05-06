@@ -8,6 +8,6 @@ type Growth struct {
 	Weight    float64   `json:"weight" gorm:"not null"`
 	Months    int       `json:"months" gorm:"not null"`
 	KidID     string    `json:"-" gorm:"not null"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime:nano"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"autoCreateTime:nano"`
 }

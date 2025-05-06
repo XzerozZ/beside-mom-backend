@@ -5,6 +5,7 @@ import (
 	"Beside-Mom-BE/modules/repositories"
 	"Beside-Mom-BE/pkg/utils"
 	"errors"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -15,7 +16,7 @@ type GrowthUseCaseImpl struct {
 }
 
 type GrowthUseCase interface {
-	CreateGrowth(kidID string, growth *entities.Growth) (*entities.Growth, error)
+	CreateGrowth(kidID string, growth *entities.Growth, date time.Time) (*entities.Growth, error)
 	GetSummary(kidID string) ([]map[string]interface{}, error)
 	GetAllGrowth(kidID string) ([]entities.Growth, error)
 	UpdateGrowthByID(id string, growth *entities.Growth) (*entities.Growth, error)
@@ -28,7 +29,7 @@ func NewGrowthUseCase(repo repositories.GrowthRepository, kidRepo repositories.K
 	}
 }
 
-func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth) (*entities.Growth, error) {
+func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth, date time.Time) (*entities.Growth, error) {
 	if growth.Length <= 0 || growth.Weight <= 0 {
 		return nil, errors.New("length and weight must be positive numbers")
 	}
@@ -38,12 +39,14 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth) 
 		return nil, err
 	}
 
-	months, err := utils.CalculateAgeInMonths(kid.BirthDate)
+	months, err := utils.CompareAgeKid(kid.BirthDate, date)
 	if err != nil {
 		return nil, err
 	}
 
 	growth.Months = months
+	growth.CreatedAt = date
+	growth.UpdatedAt = date
 	existingGrowth, err := u.repo.GetLatestGrowthByKidID(kidID)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		createdGrowth, err := u.repo.CreateGrowth(growth)
@@ -56,7 +59,7 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth) 
 		return nil, err
 	}
 
-	if months > existingGrowth.Months {
+	if months != existingGrowth.Months {
 		createdGrowth, err := u.repo.CreateGrowth(growth)
 		if err != nil {
 			return nil, err
@@ -67,7 +70,7 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth) 
 
 	existingGrowth.Length = growth.Length
 	existingGrowth.Weight = growth.Weight
-	existingGrowth.UpdatedAt = growth.CreatedAt
+	existingGrowth.UpdatedAt = date
 	updatedGrowth, err := u.repo.UpdateGrowth(existingGrowth)
 	if err != nil {
 		return nil, err
