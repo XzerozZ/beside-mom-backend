@@ -43,7 +43,7 @@ func (r *GormGrowthRepository) GetGrowthByID(id string) (*entities.Growth, error
 
 func (r *GormGrowthRepository) GetAllGrowth(kidID string) ([]entities.Growth, error) {
 	var growth []entities.Growth
-	if err := r.db.Where("kid_id = ?", kidID).Find(&growth).Error; err != nil {
+	if err := r.db.Where("kid_id = ?", kidID).Order("updated_at asc").Find(&growth).Error; err != nil {
 		return nil, err
 	}
 
