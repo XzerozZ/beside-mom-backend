@@ -47,7 +47,7 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth, 
 	growth.Months = months
 	growth.CreatedAt = date
 	growth.UpdatedAt = date
-	existingGrowth, err := u.repo.GetLatestGrowthByKidID(kidID)
+	existingGrowth, err := u.repo.GetLatestGrowthByKidID(kidID, months)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		createdGrowth, err := u.repo.CreateGrowth(growth)
 		if err != nil {
@@ -59,18 +59,9 @@ func (u *GrowthUseCaseImpl) CreateGrowth(kidID string, growth *entities.Growth, 
 		return nil, err
 	}
 
-	if months != existingGrowth.Months {
-		createdGrowth, err := u.repo.CreateGrowth(growth)
-		if err != nil {
-			return nil, err
-		}
-
-		return createdGrowth, nil
-	}
-
 	existingGrowth.Length = growth.Length
 	existingGrowth.Weight = growth.Weight
-	existingGrowth.UpdatedAt = date
+	existingGrowth.CreatedAt = date
 	updatedGrowth, err := u.repo.UpdateGrowth(existingGrowth)
 	if err != nil {
 		return nil, err
