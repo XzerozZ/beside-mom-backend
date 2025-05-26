@@ -126,7 +126,7 @@ func (u *AuthUseCaseImpl) ForgotPassword(email string) error {
 		return err
 	}
 
-	if err := utils.SendMail("./assets/OTPMail.html", user, otpCode, u.mail); err != nil {
+	if err := utils.SendMail("./assets/OTPmail.html", user, otpCode, u.mail); err != nil {
 		return err
 	}
 

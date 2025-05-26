@@ -65,11 +65,11 @@ func setupQuestRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 	usecase := usecases.NewQuestionUseCase(repository)
 	controller := controllers.NewQuestionController(usecase)
 
-	questionGroup := app.Group("/question", middlewares.JWTMiddleware(jwt), middlewares.AdminMiddleware)
-	questionGroup.Post("/", controller.CreateQuestionHandler)
+	questionGroup := app.Group("/question", middlewares.JWTMiddleware(jwt))
+	questionGroup.Post("/", middlewares.AdminMiddleware, controller.CreateQuestionHandler)
 	questionGroup.Get("/", controller.GetAllQuestionHandler)
 	questionGroup.Get("/:id", controller.GetQuestionByIDHandler)
-	questionGroup.Put("/:id", controller.UpdateQuestionByIDHandler)
+	questionGroup.Put("/:id", middlewares.AdminMiddleware, controller.UpdateQuestionByIDHandler)
 	questionGroup.Delete("/:id", controller.DeleteQuestionByIDHandler)
 }
 
