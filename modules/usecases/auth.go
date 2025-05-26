@@ -109,12 +109,7 @@ func (u *AuthUseCaseImpl) ForgotPassword(email string) error {
 	}
 
 	expiresAt := time.Now().Add(5 * time.Minute)
-	otp, err := u.repo.GetOTPByUserID(userID)
-	if err == nil && otp != nil {
-		if err := u.repo.DeleteOTP(userID); err != nil {
-			return err
-		}
-	}
+	u.repo.DeleteOTP(userID)
 
 	newOTP := &entities.OTP{
 		UserID:    userID,

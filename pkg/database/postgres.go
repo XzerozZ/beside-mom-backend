@@ -55,6 +55,7 @@ func InitDB(config configs.PostgreSQL) {
 	insertPeriods()
 	insertCategories()
 	loadSQLFiles()
+	ResetQuizIDSequence()
 	log.Println("Database connection established successfully!")
 }
 
@@ -196,4 +197,10 @@ func loadSQLFiles() {
 
 		log.Printf("Successfully executed SQL file: %s", filename)
 	}
+}
+
+func ResetQuizIDSequence() error {
+	return db.Exec(`
+		SELECT setval('quizzes_id_seq', (SELECT MAX(id) FROM quizzes))
+	`).Error
 }

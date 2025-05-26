@@ -109,12 +109,8 @@ func (c *KidController) GetKidByIDHandler(ctx *fiber.Ctx) error {
 
 	var data interface{}
 	var err error
-	if role == "Admin" {
-		data, err = c.usecase.GetKidByID(kidID)
-	} else {
-		data, err = c.usecase.GetKidByIDForUser(kidID)
-	}
 
+	data, err = c.usecase.GetKidByID(kidID)
 	if err != nil {
 		return ctx.Status(fiber.ErrNotFound.Code).JSON(fiber.Map{
 			"status":      fiber.ErrNotFound.Message,
