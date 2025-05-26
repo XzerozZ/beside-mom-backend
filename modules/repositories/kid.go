@@ -18,7 +18,6 @@ func NewGormKidsRepository(db *gorm.DB) *GormKidsRepository {
 type KidsRepository interface {
 	CreateKid(kid *entities.Kid) (*entities.Kid, error)
 	GetKidByID(id string) (*entities.Kid, error)
-	GetKidByUserID(userID string) ([]entities.Kid, error)
 	GetKidByIDForUser(id string) (*entities.Kid, error)
 	UpdateKidByID(kid *entities.Kid) (*entities.Kid, error)
 	DeleteKidByID(id string) error
@@ -110,15 +109,6 @@ func (r *GormKidsRepository) GetKidByIDForUser(id string) (*entities.Kid, error)
 	kid.BirthLength = growth.Length
 	kid.BirthWeight = growth.Weight
 	return &kid, nil
-}
-
-func (r *GormKidsRepository) GetKidByUserID(userID string) ([]entities.Kid, error) {
-	var kids []entities.Kid
-	if err := r.db.Where("user_id = ?", userID).Find(&kids).Error; err != nil {
-		return nil, err
-	}
-
-	return kids, nil
 }
 
 func (r *GormKidsRepository) UpdateKidByID(kid *entities.Kid) (*entities.Kid, error) {
