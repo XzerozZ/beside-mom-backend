@@ -19,7 +19,7 @@ type GrowthRepository interface {
 	CreateGrowth(growth *entities.Growth) (*entities.Growth, error)
 	GetGrowthByID(id string) (*entities.Growth, error)
 	GetAllGrowth(kidID string) ([]entities.Growth, error)
-	GetLatestGrowthByKidID(kidID string) (*entities.Growth, error)
+	GetLatestGrowthByKidID(kidID string, month int) (*entities.Growth, error)
 	GetSummary(kidID string) ([]map[string]interface{}, error)
 	UpdateGrowth(growth *entities.Growth) (*entities.Growth, error)
 }
@@ -43,16 +43,16 @@ func (r *GormGrowthRepository) GetGrowthByID(id string) (*entities.Growth, error
 
 func (r *GormGrowthRepository) GetAllGrowth(kidID string) ([]entities.Growth, error) {
 	var growth []entities.Growth
-	if err := r.db.Where("kid_id = ?", kidID).Find(&growth).Error; err != nil {
+	if err := r.db.Where("kid_id = ?", kidID).Order("created_at").Find(&growth).Error; err != nil {
 		return nil, err
 	}
 
 	return growth, nil
 }
 
-func (r *GormGrowthRepository) GetLatestGrowthByKidID(kidID string) (*entities.Growth, error) {
+func (r *GormGrowthRepository) GetLatestGrowthByKidID(kidID string, month int) (*entities.Growth, error) {
 	var growth *entities.Growth
-	if err := r.db.Where("kid_id = ?", kidID).Order("created_at desc").First(&growth).Error; err != nil {
+	if err := r.db.Where("kid_id = ? AND months = ?", kidID, month).Order("created_at desc").First(&growth).Error; err != nil {
 		return nil, err
 	}
 
