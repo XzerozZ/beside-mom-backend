@@ -5,11 +5,7 @@ import (
 	"Beside-Mom-BE/modules/entities"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -54,8 +50,6 @@ func InitDB(config configs.PostgreSQL) {
 	insertRoles()
 	insertPeriods()
 	insertCategories()
-	loadSQLFiles()
-	ResetQuizIDSequence()
 	log.Println("Database connection established successfully!")
 }
 
@@ -146,61 +140,4 @@ func insertCategories() {
 			}
 		}
 	}
-}
-
-func loadSQLFiles() {
-	sqlFiles := []string{
-		"public.users.sql",
-		"public.kids.sql",
-		"public.quizzes.sql",
-		"public.evaluates.sql",
-		"public.histories.sql",
-	}
-
-	sqlDir := "./assets"
-
-	if _, err := os.Stat(sqlDir); os.IsNotExist(err) {
-		log.Printf("SQL directory '%s' does not exist, creating it", sqlDir)
-		if err := os.MkdirAll(sqlDir, 0755); err != nil {
-			log.Printf("Failed to create SQL directory: %v", err)
-			return
-		}
-	}
-
-	for _, filename := range sqlFiles {
-		filePath := filepath.Join(sqlDir, filename)
-
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			log.Printf("SQL file '%s' not found, skipping", filePath)
-			continue
-		}
-
-		content, err := ioutil.ReadFile(filePath)
-		if err != nil {
-			log.Printf("Failed to read SQL file '%s': %v", filePath, err)
-			continue
-		}
-
-		statements := strings.Split(string(content), ";")
-
-		log.Printf("Executing SQL file: %s", filename)
-		for _, stmt := range statements {
-			stmt = strings.TrimSpace(stmt)
-			if stmt == "" {
-				continue
-			}
-
-			if err := db.Exec(stmt).Error; err != nil {
-				log.Printf("Error executing SQL statement from file '%s': %v\nStatement: %s", filename, err, stmt)
-			}
-		}
-
-		log.Printf("Successfully executed SQL file: %s", filename)
-	}
-}
-
-func ResetQuizIDSequence() error {
-	return db.Exec(`
-		SELECT setval('quizzes_id_seq', (SELECT MAX(id) FROM quizzes))
-	`).Error
 }
