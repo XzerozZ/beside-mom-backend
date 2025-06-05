@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	storage_go "github.com/supabase-community/storage-go"
 )
@@ -68,6 +69,31 @@ func UploadVideo(fileName string, file io.Reader, config configs.Supabase) (stri
 
 	url := fmt.Sprintf("%s/storage/v1/object/public/%s/%s", config.URL, config.Bucket, fileName)
 	return url, nil
+}
+
+func DeleteImage(fileURL string, config configs.Supabase) error {
+	if config.URL == "" || config.Key == "" || config.Bucket == "" {
+		return fmt.Errorf("invalid Supabase config")
+	}
+
+	fileName := extractFileNameFromURL(fileURL, config.Bucket)
+	storageClient := storage_go.NewClient(config.URL, config.Key, nil)
+
+	_, err := storageClient.RemoveFile(config.Bucket, []string{fileName})
+	if err != nil {
+		return fmt.Errorf("failed to remove file: %w", err)
+	}
+
+	return nil
+}
+
+func extractFileNameFromURL(fullURL, bucketName string) string {
+	prefix := "/storage/v1/object/public/" + bucketName + "/"
+	index := strings.Index(fullURL, prefix)
+	if index == -1 {
+		return ""
+	}
+	return fullURL[index+len(prefix):]
 }
 
 func stringPtr(s string) *string {

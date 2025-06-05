@@ -126,6 +126,10 @@ func (u *UserUseCaseImpl) UpdateUserByIDForUser(id string, image *multipart.File
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingUser.ImageLink, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingUser.ImageLink = imageUrl
 	}
 
@@ -159,6 +163,10 @@ func (u *UserUseCaseImpl) UpdateUserByIDForAdmin(id string, user *entities.User,
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingUser.ImageLink, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingUser.ImageLink = imageUrl
 	}
 
@@ -174,5 +182,14 @@ func (u *UserUseCaseImpl) UpdateUserByIDForAdmin(id string, user *entities.User,
 }
 
 func (u *UserUseCaseImpl) DeleteUser(id string) error {
+	existingUser, err := u.repo.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.DeleteImage(existingUser.ImageLink, u.supa); err != nil {
+		return err
+	}
+
 	return u.repo.DeleteUser(id)
 }
