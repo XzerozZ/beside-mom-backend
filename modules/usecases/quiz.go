@@ -93,6 +93,10 @@ func (u *QuizUseCaseImpl) UpdateQuizByID(id int, quiz *entities.Quiz, banner *mu
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingQuiz.Banner, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingQuiz.Banner = imageUrl
 	}
 
@@ -105,6 +109,15 @@ func (u *QuizUseCaseImpl) UpdateQuizByID(id int, quiz *entities.Quiz, banner *mu
 }
 
 func (u *QuizUseCaseImpl) DeleteQuizByID(id int) error {
+	existingQuiz, err := u.repo.GetQuizByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.DeleteImage(existingQuiz.Banner, u.supa); err != nil {
+		return err
+	}
+
 	return u.repo.DeleteQuizByID(id)
 }
 

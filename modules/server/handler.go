@@ -21,7 +21,7 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 	}
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com",
+		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com , http://localhost:5000",
 		AllowMethods: "GET, POST, PUT, DELETE",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
@@ -157,7 +157,7 @@ func setupAppointRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT) {
 }
 
 func setupCareRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase) {
-	repository := repositories.NewGormCareRepository(db)
+	repository := repositories.NewGormCareRepository(db, supa)
 	usecase := usecases.NewCareUseCase(repository, supa)
 	controller := controllers.NewCareController(usecase)
 

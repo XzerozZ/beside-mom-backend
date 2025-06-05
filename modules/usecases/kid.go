@@ -163,6 +163,10 @@ func (u *KidUseCaseImpl) UpdateKidByID(id string, kid *entities.Kid, image *mult
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingKid.ImageLink, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingKid.ImageLink = imageUrl
 	}
 

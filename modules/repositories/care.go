@@ -1,17 +1,23 @@
 package repositories
 
 import (
+	"Beside-Mom-BE/configs"
 	"Beside-Mom-BE/modules/entities"
+	"Beside-Mom-BE/pkg/utils"
 
 	"gorm.io/gorm"
 )
 
 type GormCareRepository struct {
-	db *gorm.DB
+	db   *gorm.DB
+	supa configs.Supabase
 }
 
-func NewGormCareRepository(db *gorm.DB) *GormCareRepository {
-	return &GormCareRepository{db: db}
+func NewGormCareRepository(db *gorm.DB, supa configs.Supabase) *GormCareRepository {
+	return &GormCareRepository{
+		db:   db,
+		supa: supa,
+	}
 }
 
 type CareRepository interface {
@@ -108,6 +114,10 @@ func (r *GormCareRepository) RemoveAssets(id string, imageID *string) error {
 
 		var assetsIDs []string
 		for _, img := range assetsToDelete {
+			if err := utils.DeleteImage(img.Link, r.supa); err != nil {
+				return err
+			}
+
 			assetsIDs = append(assetsIDs, img.ID)
 		}
 
@@ -155,6 +165,10 @@ func (r *GormCareRepository) DeleteCare(id string) error {
 		if len(care.Assets) > 0 {
 			var assetIDs []string
 			for _, asset := range care.Assets {
+				if err := utils.DeleteImage(asset.Link, r.supa); err != nil {
+					return err
+				}
+
 				assetIDs = append(assetIDs, asset.ID)
 			}
 

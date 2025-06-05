@@ -184,6 +184,10 @@ func (u *VideoUseCaseImpl) UpdateVideo(id string, video *entities.Video, videoFi
 	existingVideo.Description = video.Description
 	if videoFile != nil {
 		fileName := uuid.New().String() + "_video.mp4"
+		if err := utils.DeleteImage(existingVideo.Link, u.supa); err != nil {
+			return nil, err
+		}
+
 		videoUrl, err := utils.UploadVideo(fileName, file, u.supa)
 		if err != nil {
 			return nil, err
@@ -205,6 +209,10 @@ func (u *VideoUseCaseImpl) UpdateVideo(id string, video *entities.Video, videoFi
 		}
 
 		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		if err := utils.DeleteImage(existingVideo.Banner, u.supa); err != nil {
 			return nil, err
 		}
 
@@ -241,12 +249,20 @@ func (u *VideoUseCaseImpl) UpdateVideowithLink(id string, video *entities.Video,
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingVideo.Banner, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingVideo.Banner = imageUrl
 	}
 
 	existingVideo.Title = video.Title
 	existingVideo.Description = video.Description
 	if video.Link != "" {
+		if err := utils.DeleteImage(existingVideo.Link, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingVideo.Link = video.Link
 	}
 
@@ -255,6 +271,15 @@ func (u *VideoUseCaseImpl) UpdateVideowithLink(id string, video *entities.Video,
 
 func (u *VideoUseCaseImpl) DeleteVideoByID(id string) error {
 	if err := u.likerepo.DeleteLikeByVideoID(id); err != nil {
+		return err
+	}
+
+	existingVideo, err := u.repo.GetVideoByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.DeleteImage(existingVideo.Banner, u.supa); err != nil {
 		return err
 	}
 

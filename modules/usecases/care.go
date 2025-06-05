@@ -221,6 +221,10 @@ func (u *CareUseCaseImpl) UpdateCarewithUploadVideo(id string, care entities.Car
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingCare.Banner, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingCare.Banner = imageUrl
 	}
 
@@ -283,6 +287,10 @@ func (u *CareUseCaseImpl) UpdateCarewithVideoLink(id string, care entities.Care,
 		}
 
 		if err := os.Remove("./uploads/" + fileName); err != nil {
+			return nil, err
+		}
+
+		if err := utils.DeleteImage(existingCare.Banner, u.supa); err != nil {
 			return nil, err
 		}
 
@@ -369,6 +377,10 @@ func (u *CareUseCaseImpl) UpdateCarewithUploadImages(id string, care entities.Ca
 			return nil, err
 		}
 
+		if err := utils.DeleteImage(existingCare.Banner, u.supa); err != nil {
+			return nil, err
+		}
+
 		existingCare.Banner = imageUrl
 	}
 
@@ -381,5 +393,14 @@ func (u *CareUseCaseImpl) UpdateCarewithUploadImages(id string, care entities.Ca
 }
 
 func (u *CareUseCaseImpl) DeleteCareByID(id string) error {
+	existingCare, err := u.repo.GetCareByID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := utils.DeleteImage(existingCare.Banner, u.supa); err != nil {
+		return err
+	}
+
 	return u.repo.DeleteCare(id)
 }
