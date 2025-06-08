@@ -21,7 +21,7 @@ func main() {
 		StreamRequestBody: true,
 	})
 
-	server.SetupRoutes(app, config.JWT, config.Supabase, config.Mail)
+	server.SetupRoutes(app, config.JWT, config.Supabase, config.Mail, config.Chat)
 	serverAddress := config.App.Host + ":" + config.App.Port
 	log.Printf("Server is running on %s", serverAddress)
 	log.Fatal(app.Listen(serverAddress))

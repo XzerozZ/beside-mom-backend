@@ -5,9 +5,15 @@ import (
 	"Beside-Mom-BE/modules/entities"
 	"Beside-Mom-BE/modules/repositories"
 	"Beside-Mom-BE/pkg/utils"
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"mime/multipart"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -16,6 +22,7 @@ import (
 
 type UserUseCase interface {
 	CreateUser(user *entities.User, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
+	Chat(meassage string) (map[string]interface{}, error)
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
 	UpdateUserByIDForUser(id string, image *multipart.FileHeader, ctx *fiber.Ctx) (*entities.User, error)
@@ -27,13 +34,15 @@ type UserUseCaseImpl struct {
 	repo repositories.UserRepository
 	supa configs.Supabase
 	mail configs.Mail
+	chat configs.Chat
 }
 
-func NewUserUseCase(repo repositories.UserRepository, supa configs.Supabase, mail configs.Mail) *UserUseCaseImpl {
+func NewUserUseCase(repo repositories.UserRepository, supa configs.Supabase, mail configs.Mail, chat configs.Chat) *UserUseCaseImpl {
 	return &UserUseCaseImpl{
 		repo: repo,
 		supa: supa,
 		mail: mail,
+		chat: chat,
 	}
 }
 
@@ -171,6 +180,7 @@ func (u *UserUseCaseImpl) UpdateUserByIDForAdmin(id string, user *entities.User,
 	}
 
 	existingUser.Email = user.Email
+	existingUser.PID = user.PID
 	existingUser.Firstname = user.Firstname
 	existingUser.Lastname = user.Lastname
 	updatedUser, err := u.repo.UpdateUserByID(existingUser)
@@ -192,4 +202,50 @@ func (u *UserUseCaseImpl) DeleteUser(id string) error {
 	}
 
 	return u.repo.DeleteUser(id)
+}
+
+func (u *UserUseCaseImpl) Chat(message string) (map[string]interface{}, error) {
+	requestBody := map[string]interface{}{
+		"message":    message,
+		"max_tokens": 512,
+	}
+
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, err
+	}
+
+	urlStr := fmt.Sprintf("%s/chat", u.chat.URL)
+	resp, err := http.Post(urlStr, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get response: %s | Body: %s", resp.Status, string(body))
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	responseText, ok := result["response"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	finalResult := map[string]interface{}{
+		"sender":   "chat",
+		"response": responseText,
+		"sent_at":  time.Now(),
+	}
+
+	return finalResult, nil
 }

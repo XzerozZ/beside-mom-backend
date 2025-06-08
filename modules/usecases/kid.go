@@ -86,6 +86,7 @@ func (u *KidUseCaseImpl) GetKidByID(id string) (map[string]interface{}, error) {
 		"username":    kid.Username,
 		"sex":         kid.Sex,
 		"blood":       kid.BloodType,
+		"rh":          kid.RHType,
 		"imagelink":   kid.ImageLink,
 		"birthdate":   kid.BirthDate,
 		"birthweight": kid.BirthWeight,
@@ -128,6 +129,7 @@ func (u *KidUseCaseImpl) GetKidByIDForUser(id string) (map[string]interface{}, e
 		"username":    kid.Username,
 		"sex":         kid.Sex,
 		"blood":       kid.BloodType,
+		"rh":          kid.RHType,
 		"imagelink":   kid.ImageLink,
 		"birthdate":   kid.BirthDate,
 		"birthweight": kid.BirthWeight,
@@ -177,6 +179,7 @@ func (u *KidUseCaseImpl) UpdateKidByID(id string, kid *entities.Kid, image *mult
 	existingKid.BirthLength = kid.BirthLength
 	existingKid.BirthWeight = kid.BirthWeight
 	existingKid.BloodType = kid.BloodType
+	existingKid.RHType = kid.RHType
 	existingKid.Note = kid.Note
 	existingKid.Sex = kid.Sex
 	updatedKid, err := u.repo.UpdateKidByID(existingKid)
