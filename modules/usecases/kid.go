@@ -64,17 +64,7 @@ func (u *KidUseCaseImpl) GetKidByID(id string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	days, err := utils.CalculateAgeInDays(kid.BirthDate)
-	if err != nil {
-		return nil, err
-	}
-
-	months, err := utils.CalculateAgeInMonths(kid.BirthDate)
-	if err != nil {
-		return nil, err
-	}
-
-	age, err := utils.CalculateAge(kid.BirthDate)
+	years, weeks, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +84,8 @@ func (u *KidUseCaseImpl) GetKidByID(id string) (map[string]interface{}, error) {
 		"note":        kid.Note,
 		"growth":      kid.Growth,
 		"days":        days,
-		"months":      months,
-		"age":         age,
+		"weeks":       weeks,
+		"years":       years,
 	}
 
 	return kidData, nil
@@ -107,17 +97,7 @@ func (u *KidUseCaseImpl) GetKidByIDForUser(id string) (map[string]interface{}, e
 		return nil, err
 	}
 
-	days, err := utils.CalculateAgeInDays(kid.BirthDate)
-	if err != nil {
-		return nil, err
-	}
-
-	months, err := utils.CalculateAgeInMonths(kid.BirthDate)
-	if err != nil {
-		return nil, err
-	}
-
-	age, err := utils.CalculateAge(kid.BirthDate)
+	years, weeks, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
 	if err != nil {
 		return nil, err
 	}
@@ -136,8 +116,8 @@ func (u *KidUseCaseImpl) GetKidByIDForUser(id string) (map[string]interface{}, e
 		"birthlength": kid.BirthLength,
 		"note":        kid.Note,
 		"days":        days,
-		"months":      months,
-		"age":         age,
+		"weeks":       weeks,
+		"years":       years,
 	}
 
 	return kidData, nil

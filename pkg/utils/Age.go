@@ -5,36 +5,10 @@ import (
 	"time"
 )
 
-func CalculateAgeInDays(birthDate time.Time) (int, error) {
+func CalculateAgeDetailed(birthDate time.Time) (int, int, int, error) {
 	now := time.Now()
 	if birthDate.After(now) {
-		return 0, fmt.Errorf("birthdate cannot be in the future")
-	}
-
-	duration := now.Sub(birthDate)
-	days := int(duration.Hours() / 24)
-	return days, nil
-}
-
-func CalculateAgeInMonths(birthDate time.Time) (int, error) {
-	now := time.Now()
-	if birthDate.After(now) {
-		return 0, fmt.Errorf("birthdate cannot be in the future")
-	}
-
-	months := (now.Year() - birthDate.Year()) * 12
-	months += int(now.Month() - birthDate.Month())
-	if now.Day() < birthDate.Day() {
-		months--
-	}
-
-	return months, nil
-}
-
-func CalculateAge(birthDate time.Time) (int, error) {
-	now := time.Now()
-	if birthDate.After(now) {
-		return 0, fmt.Errorf("birthdate cannot be in the future")
+		return 0, 0, 0, fmt.Errorf("birthdate cannot be in the future")
 	}
 
 	years := now.Year() - birthDate.Year()
@@ -43,7 +17,16 @@ func CalculateAge(birthDate time.Time) (int, error) {
 		years--
 	}
 
-	return years, nil
+	currentYearBirthday := time.Date(now.Year(), birthDate.Month(), birthDate.Day(), 0, 0, 0, 0, time.Local)
+	if now.Before(currentYearBirthday) {
+		currentYearBirthday = currentYearBirthday.AddDate(-1, 0, 0)
+	}
+
+	daysAfterLastBirthday := int(now.Sub(currentYearBirthday).Hours() / 24)
+	weeks := daysAfterLastBirthday / 7
+	days := daysAfterLastBirthday % 7
+
+	return years, weeks, days, nil
 }
 
 func CompareAgeKid(birthDate time.Time, date time.Time) (int, error) {
