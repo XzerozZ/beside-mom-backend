@@ -1,4 +1,4 @@
-FROM golang:1.23.3
+# FROM golang:1.23.3
 ENV DB_HOST=postgres
 ENV DB_PORT=5432
 ENV DB_USER=admin
