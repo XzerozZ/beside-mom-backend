@@ -63,7 +63,7 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	requiredFields := []string{"email", "username", "sex", "birthdate", "bloodtype", "birthweight", "birthlength"}
+	requiredFields := []string{"pid", "email", "username", "sex", "birthdate", "bloodtype", "beforebirth", "birthweight", "birthlength"}
 	for _, field := range requiredFields {
 		if len(form.Value[field]) == 0 {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -77,13 +77,10 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 
 	user := &entities.User{
 		ID:        uuid.New().String(),
+		PID:       form.Value["pid"][0],
 		Firstname: form.Value["firstname"][0],
 		Lastname:  form.Value["lastname"][0],
 		Email:     form.Value["email"][0],
-	}
-
-	if len(form.Value["pid"]) > 0 {
-		user.PID = form.Value["pid"][0]
 	}
 
 	fileHeaders := form.File["images"]
@@ -103,6 +100,16 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 			"status":      "Error",
 			"status_code": fiber.StatusInternalServerError,
 			"message":     "Failed to create user: " + err.Error(),
+			"result":      nil,
+		})
+	}
+
+	beforebirth, err := strconv.ParseInt(form.Value["beforebirth"][0], 10, 64)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":      "Error",
+			"status_code": fiber.StatusBadRequest,
+			"message":     "Invalid before birth format",
 			"result":      nil,
 		})
 	}
@@ -145,6 +152,7 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		Sex:         form.Value["sex"][0],
 		BirthDate:   birthDate,
 		BloodType:   form.Value["bloodtype"][0],
+		BeforeBirth: int(beforebirth),
 		BirthWeight: birthWeight,
 		BirthLength: birthLength,
 		UserID:      user.ID,
@@ -291,9 +299,21 @@ func (c *UserController) UpdateUserByIDForAdminHandler(ctx *fiber.Ctx) error {
 	}
 
 	fileHeaders := form.File["images"]
+	requiredFields := []string{"email", "pid"}
+	for _, field := range requiredFields {
+		if len(form.Value[field]) == 0 {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status":      "Error",
+				"status_code": fiber.StatusBadRequest,
+				"message":     fmt.Sprintf("Missing required field: %s", field),
+				"result":      nil,
+			})
+		}
+	}
+
 	user := &entities.User{
 		ID:        uuid.New().String(),
-		PID:       form.Value["HID"][0],
+		PID:       form.Value["pid"][0],
 		Firstname: form.Value["firstname"][0],
 		Lastname:  form.Value["lastname"][0],
 		Email:     form.Value["email"][0],

@@ -64,28 +64,36 @@ func (u *KidUseCaseImpl) GetKidByID(id string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	years, weeks, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
+	years, months, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	ad_years, ad_months, ad_days, err := utils.CalculateAgeAdjusted(kid.BirthDate, kid.BeforeBirth)
 	if err != nil {
 		return nil, err
 	}
 
 	kidData := map[string]interface{}{
-		"id":          kid.ID,
-		"firstname":   kid.Firstname,
-		"lastname":    kid.Lastname,
-		"username":    kid.Username,
-		"sex":         kid.Sex,
-		"blood":       kid.BloodType,
-		"rh":          kid.RHType,
-		"imagelink":   kid.ImageLink,
-		"birthdate":   kid.BirthDate,
-		"birthweight": kid.BirthWeight,
-		"birthlength": kid.BirthLength,
-		"note":        kid.Note,
-		"growth":      kid.Growth,
-		"days":        days,
-		"weeks":       weeks,
-		"years":       years,
+		"id":              kid.ID,
+		"firstname":       kid.Firstname,
+		"lastname":        kid.Lastname,
+		"username":        kid.Username,
+		"sex":             kid.Sex,
+		"blood":           kid.BloodType,
+		"rh":              kid.RHType,
+		"imagelink":       kid.ImageLink,
+		"birthdate":       kid.BirthDate,
+		"birthweight":     kid.BirthWeight,
+		"birthlength":     kid.BirthLength,
+		"note":            kid.Note,
+		"growth":          kid.Growth,
+		"real_days":       days,
+		"real_months":     months,
+		"real_years":      years,
+		"adjusted_days":   ad_days,
+		"adjusted_months": ad_months,
+		"adjusted_years":  ad_years,
 	}
 
 	return kidData, nil
@@ -97,27 +105,35 @@ func (u *KidUseCaseImpl) GetKidByIDForUser(id string) (map[string]interface{}, e
 		return nil, err
 	}
 
-	years, weeks, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
+	years, months, days, err := utils.CalculateAgeDetailed(kid.BirthDate)
+	if err != nil {
+		return nil, err
+	}
+
+	ad_years, ad_months, ad_days, err := utils.CalculateAgeAdjusted(kid.BirthDate, kid.BeforeBirth)
 	if err != nil {
 		return nil, err
 	}
 
 	kidData := map[string]interface{}{
-		"id":          kid.ID,
-		"firstname":   kid.Firstname,
-		"lastname":    kid.Lastname,
-		"username":    kid.Username,
-		"sex":         kid.Sex,
-		"blood":       kid.BloodType,
-		"rh":          kid.RHType,
-		"imagelink":   kid.ImageLink,
-		"birthdate":   kid.BirthDate,
-		"birthweight": kid.BirthWeight,
-		"birthlength": kid.BirthLength,
-		"note":        kid.Note,
-		"days":        days,
-		"weeks":       weeks,
-		"years":       years,
+		"id":              kid.ID,
+		"firstname":       kid.Firstname,
+		"lastname":        kid.Lastname,
+		"username":        kid.Username,
+		"sex":             kid.Sex,
+		"blood":           kid.BloodType,
+		"rh":              kid.RHType,
+		"imagelink":       kid.ImageLink,
+		"birthdate":       kid.BirthDate,
+		"birthweight":     kid.BirthWeight,
+		"birthlength":     kid.BirthLength,
+		"note":            kid.Note,
+		"real_days":       days,
+		"real_months":     months,
+		"real_years":      years,
+		"adjusted_days":   ad_days,
+		"adjusted_months": ad_months,
+		"adjusted_years":  ad_years,
 	}
 
 	return kidData, nil
@@ -156,6 +172,7 @@ func (u *KidUseCaseImpl) UpdateKidByID(id string, kid *entities.Kid, image *mult
 	existingKid.Lastname = kid.Lastname
 	existingKid.Username = kid.Username
 	existingKid.BirthDate = kid.BirthDate
+	existingKid.BeforeBirth = kid.BeforeBirth
 	existingKid.BirthLength = kid.BirthLength
 	existingKid.BirthWeight = kid.BirthWeight
 	existingKid.BloodType = kid.BloodType

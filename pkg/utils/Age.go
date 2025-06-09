@@ -12,21 +12,49 @@ func CalculateAgeDetailed(birthDate time.Time) (int, int, int, error) {
 	}
 
 	years := now.Year() - birthDate.Year()
-	if now.Month() < birthDate.Month() ||
-		(now.Month() == birthDate.Month() && now.Day() < birthDate.Day()) {
+	months := int(now.Month()) - int(birthDate.Month())
+	days := now.Day() - birthDate.Day()
+
+	if days < 0 {
+		months--
+		lastMonth := now.AddDate(0, -1, 0)
+		daysInLastMonth := time.Date(lastMonth.Year(), lastMonth.Month()+1, 0, 0, 0, 0, 0, time.Local).Day()
+		days += daysInLastMonth
+	}
+
+	if months < 0 {
 		years--
+		months += 12
 	}
 
-	currentYearBirthday := time.Date(now.Year(), birthDate.Month(), birthDate.Day(), 0, 0, 0, 0, time.Local)
-	if now.Before(currentYearBirthday) {
-		currentYearBirthday = currentYearBirthday.AddDate(-1, 0, 0)
+	return years, months, days, nil
+}
+
+func CalculateAgeAdjusted(birthDate time.Time, beforeBirth int) (int, int, int, error) {
+	now := time.Now()
+	adjustmentDays := (40 * 7) - (beforeBirth * 7)
+	adjustedDate := birthDate.AddDate(0, 0, adjustmentDays)
+	if adjustedDate.After(now) {
+		return 0, 0, 0, fmt.Errorf("adjusted date cannot be in the future")
 	}
 
-	daysAfterLastBirthday := int(now.Sub(currentYearBirthday).Hours() / 24)
-	weeks := daysAfterLastBirthday / 7
-	days := daysAfterLastBirthday % 7
+	years := now.Year() - adjustedDate.Year()
+	months := int(now.Month()) - int(adjustedDate.Month())
+	days := now.Day() - adjustedDate.Day()
 
-	return years, weeks, days, nil
+	if days < 0 {
+		months--
+		lastMonth := now.AddDate(0, -1, 0)
+		daysInLastMonth := time.Date(lastMonth.Year(), lastMonth.Month()+1, 0, 0, 0, 0, 0, time.Local).Day()
+		days += daysInLastMonth
+	}
+
+	if months < 0 {
+		years--
+		months += 12
+	}
+
+	return years, months, days, nil
 }
 
 func CompareAgeKid(birthDate time.Time, date time.Time) (int, error) {

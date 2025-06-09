@@ -9,6 +9,7 @@ type Kid struct {
 	Username    string    `json:"uname" gorm:"not null"`
 	Sex         string    `json:"sex" gorm:"not null"`
 	BirthDate   time.Time `json:"birth_date" gorm:"not null;type:date"`
+	BeforeBirth int       `json:"before_birth" gorm:"not null"`
 	BloodType   string    `json:"blood_type" gorm:"not null"`
 	RHType      string    `json:"rh_type"`
 	BirthWeight float64   `json:"weight" gorm:"not null"`
