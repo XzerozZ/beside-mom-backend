@@ -13,7 +13,7 @@ type Configs struct {
 	App        Fiber
 	Supabase   Supabase
 	Mail       Mail
-	Chat	   Chat
+	Chat       Chat
 }
 
 type Fiber struct {
