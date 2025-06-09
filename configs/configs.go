@@ -86,6 +86,6 @@ func LoadConfigs() *Configs {
 		},
 		Chat: Chat{
 			URL: os.Getenv("CHAT_API_URL"),
-			},
+		},
 	}
 }
