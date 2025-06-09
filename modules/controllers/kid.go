@@ -161,7 +161,7 @@ func (c *KidController) UpdateKidByIDHandler(ctx *fiber.Ctx) error {
 		Username:    ctx.FormValue("username"),
 		Sex:         ctx.FormValue("sex"),
 		BirthDate:   birthDate,
-		BloodType:   ctx.FormValue("bloodtypet"),
+		BloodType:   ctx.FormValue("bloodtype"),
 		RHType:      ctx.FormValue("rh"),
 		BirthWeight: birthWeight,
 		BirthLength: birthLength,
