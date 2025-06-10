@@ -35,7 +35,7 @@ func CalculateAgeAdjusted(birthDate time.Time, beforeBirth int) (int, int, int, 
 	adjustmentDays := (40 * 7) - (beforeBirth * 7)
 	adjustedDate := birthDate.AddDate(0, 0, adjustmentDays)
 	if adjustedDate.After(now) {
-		return 0, 0, 0, fmt.Errorf("adjusted date cannot be in the future")
+		return 0, 0, 0, nil
 	}
 
 	years := now.Year() - adjustedDate.Year()
