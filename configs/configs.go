@@ -13,6 +13,7 @@ type Configs struct {
 	App        Fiber
 	Supabase   Supabase
 	Mail       Mail
+	Chat       Chat
 }
 
 type Fiber struct {
@@ -44,6 +45,10 @@ type Supabase struct {
 	URL    string
 	Key    string
 	Bucket string
+}
+
+type Chat struct {
+	URL string
 }
 
 func LoadConfigs() *Configs {
@@ -78,6 +83,9 @@ func LoadConfigs() *Configs {
 			Port:   os.Getenv("EMAIL_PORT"),
 			Sender: os.Getenv("EMAIL_USER"),
 			Key:    os.Getenv("EMAIL_PASS"),
+		},
+		Chat: Chat{
+			URL: os.Getenv("CHAT_API_URL"),
 		},
 	}
 }

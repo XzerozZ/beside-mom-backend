@@ -14,14 +14,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail configs.Mail) {
+func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail configs.Mail, chat configs.Chat) {
 	db := database.GetDB()
 	if db == nil {
 		log.Fatal("Failed to initialize database")
 	}
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com , http://localhost:5000",
+		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com , http://localhost:3000",
 		AllowMethods: "GET, POST, PUT, DELETE",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
@@ -44,7 +44,7 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 	setupCareRoutes(app, db, jwt, supa)
 	setupKidRoutes(app, db, jwt, supa)
 	setupQuizRoutes(app, db, jwt, supa)
-	setupUserRoutes(app, db, jwt, supa, mail)
+	setupUserRoutes(app, db, jwt, supa, mail, chat)
 }
 
 func setupAuthRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, mail configs.Mail) {
@@ -87,15 +87,16 @@ func setupVideoRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs
 	videoGroup.Delete("/:id", middlewares.AdminMiddleware, controller.DeleteVideoByIDHandler)
 }
 
-func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase, mail configs.Mail) {
+func setupUserRoutes(app *fiber.App, db *gorm.DB, jwt configs.JWT, supa configs.Supabase, mail configs.Mail, chat configs.Chat) {
 	repository := repositories.NewGormUserRepository(db)
 	kidrepository := repositories.NewGormKidsRepository(db)
-	usecase := usecases.NewUserUseCase(repository, supa, mail)
+	usecase := usecases.NewUserUseCase(repository, supa, mail, chat)
 	kidusecase := usecases.NewKidUseCase(kidrepository, supa)
 	controller := controllers.NewUserController(usecase, kidusecase)
 
 	userGroup := app.Group("/user", middlewares.JWTMiddleware(jwt))
 	userGroup.Post("/", middlewares.AdminMiddleware, controller.CreateUserandKidsHandler)
+	userGroup.Post("/chat", controller.ChatBotHandler)
 	userGroup.Get("/", middlewares.AdminMiddleware, controller.GetAllMomHandler)
 	userGroup.Get("/info/:id", controller.GetMomByIDHandler)
 	userGroup.Put("/", controller.UpdateUserByIDForUserHandler)

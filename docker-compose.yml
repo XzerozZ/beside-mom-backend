@@ -36,7 +36,16 @@ services:
       - DB_PASS=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_PORT=5432
+      - SSL_MODE=${SSL_MODE}
       - APP_HOST=0.0.0.0
       - APP_PORT=5000
       - JWT_SECRET=${JWT_SECRET}
+      - CHAT_API_URL=http://besidemombot:8000
     restart: on-failure
+
+  model:
+    image: valhir/chatbotbesidemom:v1
+    container_name: besidemombot
+    ports:
+      - "8000:8000"
+      

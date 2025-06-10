@@ -14,14 +14,19 @@ import (
 var db *gorm.DB
 
 func InitDB(config configs.PostgreSQL) {
+	sslMode := config.SSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok",
 		config.Host,
 		config.Username,
 		config.Password,
 		config.Database,
 		config.Port,
-		config.SSLMode,
+		sslMode,
 	)
 
 	var err error
@@ -95,7 +100,7 @@ func insertRoles() {
 func insertPeriods() {
 	periodNames := []string{
 		"แรกเกิด", "1 เดือน", "2 เดือน", "3 - 4 เดือน",
-		"5 - 6 เดือน", "7 - 8 เดือน", "8 - 9 เดือน", "10 - 12 เดือน",
+		"5 - 6 เดือน", "7 - 8 เดือน", "9 เดือน", "10 - 12 เดือน",
 	}
 
 	for _, name := range periodNames {

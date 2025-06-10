@@ -41,6 +41,7 @@ func (c *KidController) CreateKidHandler(ctx *fiber.Ctx) error {
 	}
 
 	fileHeaders := form.File["images"]
+	beforebirth, _ := strconv.ParseInt(form.Value["beforebirth"][0], 10, 64)
 	birthWeight, _ := strconv.ParseFloat(form.Value["birthweight"][0], 64)
 	birthLength, _ := strconv.ParseFloat(form.Value["birthlength"][0], 64)
 	birthDate, err := time.Parse("2006-01-02", form.Value["birthdate"][0])
@@ -60,7 +61,9 @@ func (c *KidController) CreateKidHandler(ctx *fiber.Ctx) error {
 		Username:    form.Value["username"][0],
 		Sex:         form.Value["sex"][0],
 		BirthDate:   birthDate,
+		BeforeBirth: int(beforebirth),
 		BloodType:   form.Value["bloodtype"][0],
+		RHType:      form.Value["rh"][0],
 		BirthWeight: birthWeight,
 		BirthLength: birthLength,
 		Note:        form.Value["note"][0],
@@ -141,6 +144,7 @@ func (c *KidController) UpdateKidByIDHandler(ctx *fiber.Ctx) error {
 	}
 
 	images, _ := ctx.FormFile("images")
+	beforebirth, _ := strconv.ParseInt(ctx.FormValue("beforebirth"), 10, 64)
 	birthWeight, _ := strconv.ParseFloat(ctx.FormValue("birthweight"), 64)
 	birthLength, _ := strconv.ParseFloat(ctx.FormValue("birthlength"), 64)
 	birthDate, err := time.Parse("2006-01-02", ctx.FormValue("birthdate"))
@@ -160,7 +164,9 @@ func (c *KidController) UpdateKidByIDHandler(ctx *fiber.Ctx) error {
 		Username:    ctx.FormValue("username"),
 		Sex:         ctx.FormValue("sex"),
 		BirthDate:   birthDate,
-		BloodType:   ctx.FormValue("bloodtypet"),
+		BeforeBirth: int(beforebirth),
+		BloodType:   ctx.FormValue("bloodtype"),
+		RHType:      ctx.FormValue("rh"),
 		BirthWeight: birthWeight,
 		BirthLength: birthLength,
 		Note:        ctx.FormValue("note"),
