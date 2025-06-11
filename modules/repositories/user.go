@@ -24,6 +24,7 @@ type UserRepository interface {
 	GetMomByID(id string) (*entities.User, error)
 	GetAllMom() ([]entities.User, error)
 	DeleteUser(id string) error
+	FindLatestUnnamedPID() (string, error)
 
 	CreateOTP(otp *entities.OTP) error
 	GetOTPByUserID(userID string) (*entities.OTP, error)
@@ -128,4 +129,15 @@ func (r *GormUserRepository) DeleteUser(id string) error {
 	}
 
 	return nil
+}
+
+func (r *GormUserRepository) FindLatestUnnamedPID() (string, error) {
+	var latestPID string
+	err := r.db.Table("users").Where("p_id LIKE ?", "Unnamed-Case-%").Order("p_id DESC").Select("p_id").Limit(1).Scan(&latestPID).Error
+
+	if err != nil {
+		return "", err
+	}
+
+	return latestPID, nil
 }

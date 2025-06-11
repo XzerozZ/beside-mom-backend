@@ -63,7 +63,7 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	requiredFields := []string{"pid", "email", "username", "sex", "birthdate", "bloodtype", "beforebirth", "birthweight", "birthlength"}
+	requiredFields := []string{"email", "username", "sex", "birthdate", "bloodtype", "beforebirth", "birthweight", "birthlength"}
 	for _, field := range requiredFields {
 		if len(form.Value[field]) == 0 {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -77,10 +77,14 @@ func (c *UserController) CreateUserandKidsHandler(ctx *fiber.Ctx) error {
 
 	user := &entities.User{
 		ID:        uuid.New().String(),
-		PID:       form.Value["pid"][0],
+		PID:       "",
 		Firstname: form.Value["firstname"][0],
 		Lastname:  form.Value["lastname"][0],
 		Email:     form.Value["email"][0],
+	}
+
+	if len(form.Value["pid"]) > 0 {
+		user.PID = form.Value["pid"][0]
 	}
 
 	fileHeaders := form.File["images"]

@@ -63,6 +63,25 @@ func (u *UserUseCaseImpl) CreateUser(user *entities.User, image *multipart.FileH
 	}
 
 	user.RoleID = role.ID
+	if user.PID == "" {
+		latestPID, err := u.repo.FindLatestUnnamedPID()
+		if err != nil {
+			return nil, err
+		}
+
+		seq := 0
+		if latestPID != "" {
+			if _, err := fmt.Sscanf(latestPID, "Unnamed-Case-%03d", &seq); err == nil {
+				seq++
+			} else {
+				seq = 1
+			}
+		}
+
+		seq += 1
+		user.PID = fmt.Sprintf("Unnamed-Case-%03d", seq)
+	}
+
 	password, err := utils.GeneratePassword(8)
 	if err != nil {
 		return nil, errors.New("can't generate password")
