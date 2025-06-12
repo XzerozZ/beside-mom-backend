@@ -78,7 +78,6 @@ func (u *UserUseCaseImpl) CreateUser(user *entities.User, image *multipart.FileH
 			}
 		}
 
-		seq += 1
 		user.PID = fmt.Sprintf("Unnamed-Case-%03d", seq)
 	}
 
