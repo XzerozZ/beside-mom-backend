@@ -19,6 +19,7 @@ func (c *AuthController) RegisterHandler(ctx *fiber.Ctx) error {
 	var req struct {
 		Email     string `json:"email"`
 		Password  string `json:"password"`
+		PID       string `json:"pid"`
 		Firstname string `json:"firstname"`
 		Lastname  string `json:"lastname"`
 	}
@@ -32,7 +33,7 @@ func (c *AuthController) RegisterHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	if req.Email == "" || req.Password == "" || req.Firstname == "" || req.Lastname == "" {
+	if req.Email == "" || req.Password == "" || req.Firstname == "" || req.Lastname == "" || req.PID == "" {
 		return ctx.Status(fiber.ErrBadRequest.Code).JSON(fiber.Map{
 			"status":      "Error",
 			"status_code": fiber.ErrBadRequest.Code,
@@ -44,6 +45,7 @@ func (c *AuthController) RegisterHandler(ctx *fiber.Ctx) error {
 	user := &entities.User{
 		Email:     req.Email,
 		Password:  req.Password,
+		PID:       req.PID,
 		Firstname: req.Firstname,
 		Lastname:  req.Lastname,
 	}
