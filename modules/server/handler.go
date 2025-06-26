@@ -21,8 +21,8 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 	}
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com , http://localhost:3000",
-		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowOrigins: "https://beside-mom.vercel.app, https://www.besidemom.com",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
