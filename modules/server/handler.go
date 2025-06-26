@@ -26,15 +26,16 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization,X-Requested-With,User-Agent",
 	}))
 
+	app.Use(func(ctx *fiber.Ctx) error {
+		ctx.Set("X-Content-Type-Options", "nosniff")
+		return ctx.Next()
+	})
+
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"status":  "Success",
 			"message": "Welcome to the Nursing House System!",
 		})
-	})
-
-	app.Options("/auth/login", func(ctx *fiber.Ctx) error {
-		return ctx.SendStatus(200)
 	})
 
 	setupAuthRoutes(app, db, jwt, mail)
