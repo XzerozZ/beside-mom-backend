@@ -21,14 +21,14 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		log.Fatal("Failed to initialize database")
 	}
 
+	app.Use(helmet.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "https://beside-mom.vercel.app,https://www.besidemom.com,http://localhost:3000",
 		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-Requested-With",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization,X-Requested-With,User-Agent",
 		AllowCredentials: true,
 	}))
 
-	app.Use(helmet.New())
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"status":  "Success",
