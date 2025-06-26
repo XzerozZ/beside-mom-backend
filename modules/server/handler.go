@@ -27,7 +27,14 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 	}))
 
 	app.Use(func(ctx *fiber.Ctx) error {
-		ctx.Set("X-Content-Type-Options", "nosniff")
+		if ctx.Method() == fiber.MethodOptions {
+			ctx.Set("Access-Control-Allow-Origin", ctx.Get("Origin"))
+			ctx.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			ctx.Set("Access-Control-Allow-Headers", "Origin,Content-Type,Accept,Authorization,X-Requested-With")
+			ctx.Set("Access-Control-Allow-Credentials", "true")
+			ctx.Set("Access-Control-Max-Age", "86400")
+			return ctx.SendStatus(fiber.StatusNoContent)
+		}
 		return ctx.Next()
 	})
 
