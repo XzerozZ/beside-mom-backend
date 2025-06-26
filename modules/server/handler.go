@@ -29,6 +29,10 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		AllowCredentials: true,
 	}))
 
+	app.Options("/*", func(ctx *fiber.Ctx) error {
+		return ctx.SendStatus(fiber.StatusNoContent)
+	})
+
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"status":  "Success",
