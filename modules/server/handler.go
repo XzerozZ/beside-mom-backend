@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/helmet/v2"
 	"gorm.io/gorm"
 )
 
@@ -26,18 +27,7 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization,X-Requested-With,User-Agent",
 	}))
 
-	app.Use(func(ctx *fiber.Ctx) error {
-		if ctx.Method() == fiber.MethodOptions {
-			ctx.Set("Access-Control-Allow-Origin", ctx.Get("Origin"))
-			ctx.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-			ctx.Set("Access-Control-Allow-Headers", "Origin,Content-Type,Accept,Authorization,X-Requested-With")
-			ctx.Set("Access-Control-Allow-Credentials", "true")
-			ctx.Set("Access-Control-Max-Age", "86400")
-			return ctx.SendStatus(fiber.StatusNoContent)
-		}
-		return ctx.Next()
-	})
-
+	app.Use(helmet.New())
 	app.Get("/", func(ctx *fiber.Ctx) error {
 		return ctx.JSON(fiber.Map{
 			"status":  "Success",
