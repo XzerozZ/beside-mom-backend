@@ -33,6 +33,10 @@ func SetupRoutes(app *fiber.App, jwt configs.JWT, supa configs.Supabase, mail co
 		})
 	})
 
+	app.Options("/auth/login", func(ctx *fiber.Ctx) error {
+		return ctx.SendStatus(200)
+	})
+
 	setupAuthRoutes(app, db, jwt, mail)
 	setupQuestRoutes(app, db, jwt)
 	setupHistoryRoutes(app, db, jwt)
